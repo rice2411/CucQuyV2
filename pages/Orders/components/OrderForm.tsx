@@ -246,6 +246,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
               status={status} setStatus={setStatus}
               paymentStatus={paymentStatus} setPaymentStatus={setPaymentStatus}
               note={note} setNote={setNote}
+              total={total}
+              customerName={customerName}
             />
           </form>
           <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-end gap-3">
