@@ -2,6 +2,7 @@ import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc,
 import { db } from '../firebaseConfig';
 import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem } from '../types';
 import { DEFAULT_PRICES } from '../constants';
+import * as XLSX from 'xlsx-js-style';
 
 export const fetchOrders = async (): Promise<Order[]> => {
   try {
@@ -41,6 +42,15 @@ export const fetchOrders = async (): Promise<Order[]> => {
         }
 
         return OrderStatus.PROCESSING; // Default fallback
+      };
+
+      // Helper for Payment Status normalization
+      const getPaymentStatus = (val: any): PaymentStatus => {
+         if (!val) return PaymentStatus.UNPAID;
+         const s = String(val).toLowerCase();
+         if (s === 'paid') return PaymentStatus.PAID;
+         if (s === 'refunded') return PaymentStatus.REFUNDED;
+         return PaymentStatus.UNPAID;
       };
 
       // Helper to generate a consistent image based on product type
@@ -117,10 +127,10 @@ export const fetchOrders = async (): Promise<Order[]> => {
         total: finalTotal, // Use calculated total
         shippingCost: shippingCost,
         status: mapStatus(data.status),
-        paymentStatus: (data.paymentStatus as PaymentStatus) || PaymentStatus.UNPAID,
+        paymentStatus: getPaymentStatus(data.paymentStatus),
         date: getDate(data.orderDate || data.createdAt),
         trackingNumber: data.trackingNumber,
-        notes: data.note || data.notes
+        notes: data.note || data.notes || ''
       } as Order;
     });
   } catch (error) {
@@ -134,17 +144,17 @@ export const addOrder = async (orderData: any): Promise<void> => {
     const ordersRef = collection(db, 'orders');
     // Map internal form data to specific Firestore flat structure
     const payload = {
-      customerName: orderData.customer.name,
-      phone: orderData.customer.phone,
-      address: orderData.customer.address,
-      items: orderData.items, // New Array structure
-      shippingCost: orderData.shippingCost,
-      total: orderData.total,
-      note: orderData.notes,
-      status: orderData.status.toLowerCase(),
+      customerName: orderData.customer?.name || '',
+      phone: orderData.customer?.phone || '',
+      address: orderData.customer?.address || '',
+      items: orderData.items || [], // New Array structure
+      shippingCost: orderData.shippingCost || 0,
+      total: orderData.total || 0,
+      note: orderData.notes || '',
+      status: (orderData.status || 'pending').toLowerCase(),
       orderDate: Timestamp.now(),
       createdAt: Timestamp.now(),
-      paymentStatus: 'Unpaid' // Default
+      paymentStatus: orderData.paymentStatus || 'Unpaid' 
     };
     await addDoc(ordersRef, payload);
   } catch (error) {
@@ -158,15 +168,15 @@ export const updateOrder = async (orderId: string, orderData: any): Promise<void
     const orderRef = doc(db, 'orders', orderId);
     // Map internal form data to specific Firestore flat structure
     const payload = {
-      customerName: orderData.customer.name,
-      phone: orderData.customer.phone,
-      address: orderData.customer.address,
-      items: orderData.items,
-      shippingCost: orderData.shippingCost,
-      total: orderData.total,
-      note: orderData.notes,
-      status: orderData.status.toLowerCase(),
-      // Don't update orderDate/createdAt usually
+      customerName: orderData.customer?.name || '',
+      phone: orderData.customer?.phone || '',
+      address: orderData.customer?.address || '',
+      items: orderData.items || [],
+      shippingCost: orderData.shippingCost || 0,
+      total: orderData.total || 0,
+      note: orderData.notes || '',
+      status: (orderData.status || 'pending').toLowerCase(),
+      paymentStatus: orderData.paymentStatus || 'Unpaid'
     };
     await updateDoc(orderRef, payload);
   } catch (error) {
@@ -186,87 +196,117 @@ export const deleteOrder = async (orderId: string): Promise<void> => {
   }
 };
 
-export const exportOrdersToCSV = (orders: Order[]) => {
-  // Helper to escape characters for CSV validity
-  const escape = (val: any) => {
-    if (val === null || val === undefined) return '';
-    const str = String(val);
-    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
-  };
+export interface ExportColumn {
+  id: string;
+  label: string;
+  field: (order: Order) => any;
+}
 
-  const headers = [
-    'Order ID',
-    'Date',
-    'Customer Name',
-    'Phone',
-    'Address',
-    'Products',
-    'Subtotal (VND)',
-    'Shipping (VND)',
-    'Total (VND)',
-    'Status',
-    'Payment',
-    'Notes'
-  ];
-
-  const rows = orders.map(order => {
-    // Generate a simple string summary of products
-    const itemsSummary = order.items.map(i => `${i.productName} (x${i.quantity})`).join('; ');
+// Helper to apply header styling
+const applyHeaderStyle = (ws: any, headerColor: string) => {
+  if (!ws['!ref']) return;
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const address = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[address]) continue;
     
-    // Calculate subtotal for clarity
-    const subtotal = order.total - (order.shippingCost || 0);
-    const dateStr = new Date(order.date).toLocaleDateString('vi-VN');
+    ws[address].s = {
+      font: {
+        bold: true,
+        color: { rgb: "FFFFFF" }
+      },
+      fill: {
+        fgColor: { rgb: headerColor.replace('#', '') }
+      },
+      alignment: {
+        horizontal: "center",
+        vertical: "center"
+      },
+      border: {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      }
+    };
+  }
+};
 
-    return [
-      escape(order.id),
-      escape(dateStr),
-      escape(order.customer.name),
-      escape(`'${order.customer.phone}`), // Add single quote to prevent Excel dropping leading zeros
-      escape(order.customer.address),
-      escape(itemsSummary),
-      subtotal,
-      order.shippingCost || 0,
-      order.total,
-      escape(order.status),
-      escape(order.paymentStatus),
-      escape(order.notes)
-    ].join(',');
+export const exportOrdersToExcel = (
+  orders: Order[], 
+  columns: ExportColumn[], 
+  headerColor: string = '#ea580c'
+) => {
+  const wb = XLSX.utils.book_new();
+
+  // Group orders by Month (YYYY-MM)
+  const groupedOrders: Record<string, Order[]> = {};
+  orders.forEach(order => {
+    const d = new Date(order.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!groupedOrders[key]) groupedOrders[key] = [];
+    groupedOrders[key].push(order);
   });
 
-  // Calculate Totals for the footer
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const totalShipping = orders.reduce((sum, o) => sum + (o.shippingCost || 0), 0);
-  const totalOrders = orders.length;
+  const monthKeys = Object.keys(groupedOrders).sort();
 
-  const footer = [
-    '', // Empty row separator
-    [
-      '', '', '', '', '', // Empty cells for first 5 columns
-      'TOTAL REVENUE:', // Header aligned with Products column
-      '', // Empty (Subtotal)
-      '', // Empty (Shipping)
-      totalRevenue, // Total Revenue Value
-      `(${totalOrders} Orders)`, // Order count under Status
-      '', ''
-    ].join(',')
-  ];
+  if (monthKeys.length > 1) {
+    // --- MULTI-SHEET MODE (Overall + Monthly Sheets) ---
 
-  const csvContent = [
-    headers.join(','),
-    ...rows,
-    ...footer
-  ].join('\n');
+    // 1. Overall Sheet
+    const overallData = monthKeys.map(month => {
+      const monthOrders = groupedOrders[month];
+      const revenue = monthOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const uniqueCustomers = new Set(monthOrders.map(o => o.customer.id)).size;
+      return {
+        "Month": month,
+        "Total Orders": monthOrders.length,
+        "Total Revenue": revenue,
+        "Total Customers": uniqueCustomers,
+        "Avg Order Value": monthOrders.length ? revenue / monthOrders.length : 0
+      };
+    });
 
-  // Add BOM for UTF-8 compatibility (especially for Excel reading Vietnamese)
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `CucQuy_Orders_Export_${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    const wsOverall = XLSX.utils.json_to_sheet(overallData);
+    // Set columns width
+    wsOverall['!cols'] = [
+        { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 20 }
+    ];
+    applyHeaderStyle(wsOverall, headerColor);
+    XLSX.utils.book_append_sheet(wb, wsOverall, "Overall");
+
+    // 2. Individual Month Sheets
+    monthKeys.forEach(month => {
+      const sheetData = groupedOrders[month].map(order => {
+        const row: any = {};
+        columns.forEach(col => {
+          row[col.label] = col.field(order);
+        });
+        return row;
+      });
+
+      const ws = XLSX.utils.json_to_sheet(sheetData);
+      ws['!cols'] = columns.map(() => ({ wch: 20 }));
+      applyHeaderStyle(ws, headerColor);
+      XLSX.utils.book_append_sheet(wb, ws, month);
+    });
+
+  } else {
+    // --- SINGLE SHEET MODE (Standard) ---
+    const data = orders.map(order => {
+      const row: any = {};
+      columns.forEach(col => {
+        row[col.label] = col.field(order);
+      });
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = columns.map(() => ({ wch: 20 }));
+    applyHeaderStyle(ws, headerColor);
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+  }
+
+  const fileName = `CucQuy_Orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fileName);
 };

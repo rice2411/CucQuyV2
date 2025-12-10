@@ -1,3 +1,4 @@
+
 export const translations = {
   en: {
     nav: {
@@ -61,6 +62,7 @@ export const translations = {
       exportCsv: "Export CSV",
       exportTitle: "Export Order Data",
       exportCurrentMonth: "Current Month",
+      exportMonth: "Select Month",
       exportAllTime: "All Time",
       exportCustom: "Custom Range",
       exportStart: "Start Date",
@@ -195,6 +197,7 @@ export const translations = {
       exportCsv: "Xuất CSV",
       exportTitle: "Xuất dữ liệu đơn hàng",
       exportCurrentMonth: "Tháng này",
+      exportMonth: "Chọn tháng",
       exportAllTime: "Tất cả",
       exportCustom: "Tùy chỉnh",
       exportStart: "Từ ngày",
