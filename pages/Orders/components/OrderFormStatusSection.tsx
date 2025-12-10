@@ -12,6 +12,7 @@ interface OrderStatusSectionProps {
   setNote: (val: string) => void;
   total: number;
   customerName: string;
+  orderNumber: string;
 }
 
 const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
@@ -19,14 +20,14 @@ const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
   paymentStatus, setPaymentStatus,
   note, setNote,
   total,
-  customerName
+  customerName,
+  orderNumber
 }) => {
   const { t } = useLanguage();
 
   // Construct SePay URL
-  // Description limited to 50 chars, simplified
-  const cleanName = customerName.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-  const description = cleanName ? `PAY ${cleanName}`.substring(0, 20) : 'PAY ORDER';
+  // Use order number for description
+  const description = `Thanh toan don hang ${orderNumber}`;
   const qrUrl = `https://qr.sepay.vn/img?acc=96247HTTH1308&bank=BIDV&amount=${Math.round(total)}&des=${encodeURIComponent(description)}&template=compact`;
 
   const copyToClipboard = (text: string) => {
@@ -96,24 +97,30 @@ const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
               
               <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
                  <div className="flex justify-between sm:justify-start sm:gap-4 items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700">
-                    <span className="text-xs text-slate-500 uppercase font-medium">Bank</span>
+                    <span className="text-xs text-slate-500 uppercase font-medium min-w-[60px]">Bank</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">BIDV</span>
                  </div>
                  <div className="flex justify-between sm:justify-start sm:gap-4 items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700 group cursor-pointer" onClick={() => copyToClipboard('96247HTTH1308')}>
-                    <span className="text-xs text-slate-500 uppercase font-medium">Account</span>
+                    <span className="text-xs text-slate-500 uppercase font-medium min-w-[60px]">Account</span>
                     <div className="flex items-center gap-2">
                        <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">96247HTTH1308</span>
                        <Copy className="w-3 h-3 text-slate-400 group-hover:text-blue-500" />
                     </div>
                  </div>
                  <div className="flex justify-between sm:justify-start sm:gap-4 items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700">
-                    <span className="text-xs text-slate-500 uppercase font-medium">Name</span>
+                    <span className="text-xs text-slate-500 uppercase font-medium min-w-[60px]">Name</span>
                     <span className="font-bold text-slate-800 dark:text-slate-200 uppercase">TON THAT ANH MINH</span>
                  </div>
                  <div className="flex justify-between sm:justify-start sm:gap-4 items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700">
-                    <span className="text-xs text-slate-500 uppercase font-medium">Amount</span>
+                    <span className="text-xs text-slate-500 uppercase font-medium min-w-[60px]">Amount</span>
                     <span className="font-bold text-orange-600 dark:text-orange-400">
                       {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
+                    </span>
+                 </div>
+                 <div className="flex justify-between sm:justify-start sm:gap-4 items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700">
+                    <span className="text-xs text-slate-500 uppercase font-medium min-w-[60px]">Content</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 break-all">
+                      {description}
                     </span>
                  </div>
               </div>
