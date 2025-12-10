@@ -113,7 +113,7 @@ const OrdersPage: React.FC = () => {
              // Not found or no phone -> Keep Name, leave others blank as requested
              newCustomerData = {
                  id: '', 
-                 name: order.customer.name, // Keep existing name from order
+                 name: order.customer.name, // Keep existing name from order (which might be from customerName legacy)
                  phone: '', 
                  address: '',
                  email: '',
@@ -123,6 +123,7 @@ const OrdersPage: React.FC = () => {
          }
          
          // Perform update using the service directly to avoid multiple refreshes
+         // The service is configured to DELETE legacy customerName/phone fields during this update
          await updateOrder(order.id, {
             ...order,
             customer: newCustomerData
