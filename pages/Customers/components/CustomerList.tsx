@@ -1,15 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Edit2, Trash2, User, Phone } from 'lucide-react';
+import { Search, Edit2, Trash2, User, Phone, ShoppingBag } from 'lucide-react';
 import { Customer } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface CustomerListProps {
   customers: Customer[];
+  customerStats: Map<string, number>;
   onEdit: (customer: Customer) => void;
   onDelete: (id: string) => void;
 }
 
-const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ customers, customerStats, onEdit, onDelete }) => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -19,6 +20,11 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
       c.phone.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [customers, searchTerm]);
+
+  const getProductCount = (phone: string) => {
+    const normalized = phone.replace(/\D/g, '');
+    return customerStats.get(normalized) || 0;
+  };
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col h-full animate-fade-in transition-colors overflow-hidden">
@@ -80,6 +86,10 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                         <span>{customer.phone}</span>
                      </div>
                    )}
+                   <div className="flex items-center gap-2">
+                      <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="font-medium">{t('customers.table.totalProducts')}: {getProductCount(customer.phone)}</span>
+                   </div>
                 </div>
              </div>
            ))
@@ -95,6 +105,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
              <tr className="text-slate-600 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-600">
                <th className="px-6 py-4">{t('customers.table.name')}</th>
                <th className="px-6 py-4">{t('customers.form.phone')}</th>
+               <th className="px-6 py-4 text-center">{t('customers.table.totalProducts')}</th>
                <th className="px-6 py-4 text-center w-32">{t('customers.table.actions')}</th>
              </tr>
            </thead>
@@ -120,6 +131,11 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                         </div>
                      </td>
                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                           {getProductCount(customer.phone)}
+                        </span>
+                     </td>
+                     <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                            <button 
                              onClick={() => onEdit(customer)}
@@ -139,7 +155,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                 ))
               ) : (
                 <tr>
-                   <td colSpan={3} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
+                   <td colSpan={4} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
                       {t('customers.noData')}
                    </td>
                 </tr>

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, deleteField } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem, Customer } from '../types';
 import { DEFAULT_PRICES } from '../constants';
@@ -150,9 +150,15 @@ export const fetchOrders = async (): Promise<Order[]> => {
 export const addOrder = async (orderData: any): Promise<void> => {
   try {
     const ordersRef = collection(db, 'orders');
-    // Map internal form data to specific Firestore structured customer
+    // Map internal form data to specific Firestore flat structure + structured customer
     const payload = {
-      // Structured Customer Object (No legacy flat fields written)
+      // Legacy flat fields
+      customerName: orderData.customer?.name || '',
+      phone: orderData.customer?.phone || '',
+      address: orderData.customer?.address || '',
+      email: orderData.customer?.email || '',
+      
+      // Structured Customer Object
       customer: {
         id: orderData.customer?.id || '',
         name: orderData.customer?.name || '',
@@ -195,11 +201,11 @@ export const updateOrder = async (orderId: string, orderData: any): Promise<void
     };
 
     const payload = {
-      // DELETE legacy flat fields to clean up schema
-      customerName: deleteField(),
-      phone: deleteField(),
-      address: deleteField(),
-      email: deleteField(),
+      // Legacy flat fields - Write them instead of deleting
+      customerName: safeCustomer.name,
+      phone: safeCustomer.phone,
+      address: safeCustomer.address,
+      email: safeCustomer.email,
 
       // Structured Customer Object
       customer: safeCustomer,

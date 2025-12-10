@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Users, Loader2 } from 'lucide-react';
 import { useCustomers } from '../../contexts/CustomerContext';
+import { useOrders } from '../../contexts/OrderContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Customer } from '../../types';
 import CustomerList from './components/CustomerList';
@@ -9,6 +10,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 
 const CustomersPage: React.FC = () => {
   const { customers, loading, createNewCustomer, modifyCustomer, removeCustomer } = useCustomers();
+  const { orders } = useOrders();
   const { t } = useLanguage();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -17,6 +19,20 @@ const CustomersPage: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Calculate product counts per customer (grouped by normalized phone)
+  const customerStats = useMemo(() => {
+    const stats = new Map<string, number>();
+    orders.forEach(order => {
+       const phone = order.customer.phone?.replace(/\D/g, ''); // Normalize
+       if (!phone) return;
+       
+       const itemCount = order.items.reduce((sum, item) => sum + Number(item.quantity), 0);
+       const current = stats.get(phone) || 0;
+       stats.set(phone, current + itemCount);
+    });
+    return stats;
+  }, [orders]);
 
   const handleCreate = () => {
     setEditingCustomer(undefined);
@@ -87,6 +103,7 @@ const CustomersPage: React.FC = () => {
        ) : (
           <CustomerList 
             customers={customers}
+            customerStats={customerStats}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
           />

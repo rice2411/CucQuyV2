@@ -99,6 +99,7 @@ export const translations = {
         name: "Customer",
         contact: "Contact Info",
         location: "Location",
+        totalProducts: "Total Products",
         actions: "Actions"
       },
       form: {
@@ -263,6 +264,7 @@ export const translations = {
         name: "Khách hàng",
         contact: "Liên hệ",
         location: "Địa chỉ",
+        totalProducts: "Tổng sản phẩm",
         actions: "Thao tác"
       },
       form: {
