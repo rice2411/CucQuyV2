@@ -14,11 +14,12 @@ export const fetchCustomers = async (): Promise<Customer[]> => {
       return {
         id: doc.id,
         name: data.name,
-        email: data.email || '',
         phone: data.phone || '',
-        address: data.address || '',
-        city: data.city || '',
-        country: data.country || ''
+        // Map optional fields if they exist for backward compatibility
+        email: data.email,
+        address: data.address,
+        city: data.city,
+        country: data.country
       } as Customer;
     });
   } catch (error) {

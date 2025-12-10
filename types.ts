@@ -1,3 +1,4 @@
+
 export enum OrderStatus {
   PENDING = 'Pending',
   PROCESSING = 'Processing',
@@ -22,11 +23,11 @@ export enum ProductType {
 export interface Customer {
   id: string;
   name: string;
-  email: string;
   phone: string;
-  address: string;
-  city: string;
-  country: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface OrderItem {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Phone, Mail, MapPin, Globe, AlertCircle } from 'lucide-react';
+import { X, Save, User, Phone, AlertCircle } from 'lucide-react';
 import { Customer } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import BaseModal from '../../../components/BaseModal';
@@ -17,27 +17,15 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, initialData, onSave
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('Vietnam');
 
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
-      setEmail(initialData.email);
       setPhone(initialData.phone);
-      setAddress(initialData.address);
-      setCity(initialData.city);
-      setCountry(initialData.country || 'Vietnam');
     } else {
       setName('');
-      setEmail('');
       setPhone('');
-      setAddress('');
-      setCity('');
-      setCountry('Vietnam');
     }
     setError(null);
   }, [initialData, isOpen]);
@@ -53,11 +41,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, initialData, onSave
       const formData = {
         id: initialData?.id,
         name,
-        email,
         phone,
-        address,
-        city,
-        country
+        // Reset optional fields if they existed, or keep them if we were preserving data.
+        // For this requirement "only 2 fields", we only send these.
       };
 
       await onSave(formData);
@@ -99,7 +85,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, initialData, onSave
       onClose={onClose}
       title={initialData ? t('customers.form.editTitle') : t('customers.form.addTitle')}
       footer={footer}
-      size="md"
+      size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -124,71 +110,18 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, initialData, onSave
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.phone')}</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input 
-                  type="tel" 
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
-                  placeholder="090..."
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.email')}</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
-                  placeholder="example@mail.com"
-                />
-              </div>
-            </div>
-          </div>
-
           <div>
-             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.address')}</label>
-             <div className="relative">
-                <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input 
-                  type="text"
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
-                  placeholder="Street address..."
-                />
-             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.city')}</label>
-                <input 
-                  type="text" 
-                  value={city}
-                  onChange={e => setCity(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
-                />
-             </div>
-             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.country')}</label>
-                <div className="relative">
-                   <Globe className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                   <input 
-                    type="text" 
-                    value={country}
-                    onChange={e => setCountry(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                </div>
-             </div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customers.form.phone')}</label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <input 
+                type="tel" 
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                placeholder="090..."
+              />
+            </div>
           </div>
       </form>
     </BaseModal>

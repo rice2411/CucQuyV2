@@ -1,6 +1,6 @@
 import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem } from '../types';
+import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem, Customer } from '../types';
 import { DEFAULT_PRICES } from '../constants';
 import * as XLSX from 'xlsx-js-style';
 
@@ -112,17 +112,25 @@ export const fetchOrders = async (): Promise<Order[]> => {
 
       const finalTotal = calculatedSubtotal + Number(shippingCost);
 
+      // Customer Construction: Prefer 'customer' object, fallback to flat fields
+      let customer: Customer = data.customer ? { ...data.customer } : {
+        id: '',
+        name: data.customerName || 'Walk-in Customer',
+        phone: data.phone || '',
+        address: data.address || '',
+        city: '',
+        country: '',
+        email: data.email || ''
+      };
+
+      // Ensure ID exists
+      if (!customer.id) {
+         customer.id = `CUST-${doc.id.substring(0, 6)}`;
+      }
+
       return {
         id: doc.id,
-        customer: {
-          id: `CUST-${doc.id.substring(0, 6)}`,
-          name: data.customerName || 'Walk-in Customer',
-          email: data.email || '', 
-          phone: data.phone || '',
-          address: data.address || '', 
-          city: '',
-          country: ''
-        },
+        customer: customer,
         items: items,
         total: finalTotal, // Use calculated total
         shippingCost: shippingCost,
@@ -142,11 +150,24 @@ export const fetchOrders = async (): Promise<Order[]> => {
 export const addOrder = async (orderData: any): Promise<void> => {
   try {
     const ordersRef = collection(db, 'orders');
-    // Map internal form data to specific Firestore flat structure
+    // Map internal form data to specific Firestore flat structure + structured customer
     const payload = {
+      // Legacy flat fields
       customerName: orderData.customer?.name || '',
       phone: orderData.customer?.phone || '',
       address: orderData.customer?.address || '',
+      
+      // Structured Customer Object
+      customer: {
+        id: orderData.customer?.id || '',
+        name: orderData.customer?.name || '',
+        phone: orderData.customer?.phone || '',
+        address: orderData.customer?.address || '',
+        email: orderData.customer?.email || '',
+        city: orderData.customer?.city || '',
+        country: orderData.customer?.country || ''
+      },
+
       items: orderData.items || [], // New Array structure
       shippingCost: orderData.shippingCost || 0,
       total: orderData.total || 0,
@@ -166,11 +187,27 @@ export const addOrder = async (orderData: any): Promise<void> => {
 export const updateOrder = async (orderId: string, orderData: any): Promise<void> => {
   try {
     const orderRef = doc(db, 'orders', orderId);
-    // Map internal form data to specific Firestore flat structure
+    
+    // Clean customer data to ensure no undefined values
+    const safeCustomer = {
+        id: orderData.customer?.id || '',
+        name: orderData.customer?.name || '',
+        phone: orderData.customer?.phone || '',
+        address: orderData.customer?.address || '',
+        email: orderData.customer?.email || '',
+        city: orderData.customer?.city || '',
+        country: orderData.customer?.country || ''
+    };
+
     const payload = {
-      customerName: orderData.customer?.name || '',
-      phone: orderData.customer?.phone || '',
-      address: orderData.customer?.address || '',
+      // Legacy flat fields
+      customerName: safeCustomer.name,
+      phone: safeCustomer.phone,
+      address: safeCustomer.address,
+
+      // Structured Customer Object
+      customer: safeCustomer,
+
       items: orderData.items || [],
       shippingCost: orderData.shippingCost || 0,
       total: orderData.total || 0,

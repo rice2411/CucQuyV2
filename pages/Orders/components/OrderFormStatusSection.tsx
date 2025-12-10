@@ -1,17 +1,20 @@
 import React from 'react';
-import { StickyNote } from 'lucide-react';
-import { OrderStatus } from '../../../types';
+import { StickyNote, CreditCard } from 'lucide-react';
+import { OrderStatus, PaymentStatus } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface OrderStatusSectionProps {
   status: OrderStatus;
   setStatus: (val: OrderStatus) => void;
+  paymentStatus: PaymentStatus;
+  setPaymentStatus: (val: PaymentStatus) => void;
   note: string;
   setNote: (val: string) => void;
 }
 
 const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
   status, setStatus,
+  paymentStatus, setPaymentStatus,
   note, setNote
 }) => {
   const { t } = useLanguage();
@@ -28,6 +31,20 @@ const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
             >
               {Object.values(OrderStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+         </div>
+
+         <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('detail.payment')}</label>
+            <div className="relative">
+                <CreditCard className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <select 
+                  value={paymentStatus}
+                  onChange={e => setPaymentStatus(e.target.value as PaymentStatus)}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                >
+                  {Object.values(PaymentStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+            </div>
          </div>
       </div>
       

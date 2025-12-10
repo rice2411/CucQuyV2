@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Edit2, Trash2, User, Phone, Mail, MapPin } from 'lucide-react';
+import { Search, Edit2, Trash2, User, Phone } from 'lucide-react';
 import { Customer } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
@@ -16,8 +16,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
   const filteredCustomers = useMemo(() => {
     return customers.filter(c => 
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase())
+      c.phone.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [customers, searchTerm]);
 
@@ -75,18 +74,10 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                 </div>
 
                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                   {(customer.phone || customer.email) && (
+                   {customer.phone && (
                      <div className="flex items-center gap-2">
                         <Phone className="w-3.5 h-3.5 text-slate-400" />
                         <span>{customer.phone}</span>
-                        {customer.email && <span className="text-slate-300 mx-1">|</span>}
-                        <span className="truncate">{customer.email}</span>
-                     </div>
-                   )}
-                   {(customer.address || customer.city) && (
-                     <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="truncate">{[customer.address, customer.city].filter(Boolean).join(', ')}</span>
                      </div>
                    )}
                 </div>
@@ -103,8 +94,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
            <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-700 shadow-sm">
              <tr className="text-slate-600 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-600">
                <th className="px-6 py-4">{t('customers.table.name')}</th>
-               <th className="px-6 py-4">{t('customers.table.contact')}</th>
-               <th className="px-6 py-4">{t('customers.table.location')}</th>
+               <th className="px-6 py-4">{t('customers.form.phone')}</th>
                <th className="px-6 py-4 text-center w-32">{t('customers.table.actions')}</th>
              </tr>
            </thead>
@@ -124,25 +114,9 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                         </div>
                      </td>
                      <td className="px-6 py-4">
-                        <div className="flex flex-col text-sm">
-                           {customer.phone && (
-                             <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                               <Phone className="w-3 h-3 text-slate-400" /> {customer.phone}
-                             </div>
-                           )}
-                           {customer.email && (
-                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mt-1">
-                               <Mail className="w-3 h-3 text-slate-400" /> {customer.email}
-                             </div>
-                           )}
-                        </div>
-                     </td>
-                     <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                           <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                           <span className="truncate max-w-xs">
-                             {[customer.address, customer.city, customer.country].filter(Boolean).join(', ')}
-                           </span>
+                        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-sm">
+                            <Phone className="w-3 h-3 text-slate-400" /> 
+                            {customer.phone}
                         </div>
                      </td>
                      <td className="px-6 py-4 text-center">
@@ -165,7 +139,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ customers, onEdit, onDelete
                 ))
               ) : (
                 <tr>
-                   <td colSpan={4} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
+                   <td colSpan={3} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
                       {t('customers.noData')}
                    </td>
                 </tr>

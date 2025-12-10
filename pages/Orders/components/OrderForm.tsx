@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
-import { Order, OrderStatus, ProductType } from '../../../types';
+import { Order, OrderStatus, PaymentStatus, ProductType } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import OrderFormCustomerSection from './OrderFormCustomerSection';
 import OrderFormItemsSection from './OrderFormItemsSection';
@@ -38,6 +38,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
   const [shippingCost, setShippingCost] = useState(0);
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<OrderStatus>(OrderStatus.PENDING);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.UNPAID);
 
   // Initialize Data
   useEffect(() => {
@@ -47,6 +48,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       setAddress(initialData.customer.address);
       setNote(initialData.notes || '');
       setStatus(initialData.status);
+      setPaymentStatus(initialData.paymentStatus || PaymentStatus.UNPAID);
       setShippingCost(initialData.shippingCost || 0);
       
       if (initialData.items && initialData.items.length > 0) {
@@ -91,6 +93,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       setNote('');
       setShippingCost(0);
       setStatus(OrderStatus.PENDING);
+      setPaymentStatus(PaymentStatus.UNPAID);
       
       setItems([{
          internalId: `new-${Date.now()}`,
@@ -188,7 +191,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
         shippingCost: Number(shippingCost),
         total: total,
         notes: note,
-        status: status
+        status: status,
+        paymentStatus: paymentStatus
       };
 
       await onSave(formData);
@@ -240,6 +244,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
             <hr className="border-slate-100 dark:border-slate-700" />
             <OrderFormStatusSection 
               status={status} setStatus={setStatus}
+              paymentStatus={paymentStatus} setPaymentStatus={setPaymentStatus}
               note={note} setNote={setNote}
             />
           </form>
