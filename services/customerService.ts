@@ -1,5 +1,5 @@
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '../config/firebase';
 import { Customer } from '../types';
 
 export const fetchCustomers = async (): Promise<Customer[]> => {

@@ -1,7 +1,7 @@
 import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem, Customer } from '../types';
-import { DEFAULT_PRICES } from '../constants';
+import { db } from '../config/firebase';
+import { Order, OrderStatus, PaymentStatus, ProductType, OrderItem, Customer } from '../types/index';
+import { DEFAULT_PRICES } from '../constants/index';
 import * as XLSX from 'xlsx-js-style';
 
 export const fetchOrders = async (): Promise<Order[]> => {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
-import { Order, OrderStatus, PaymentStatus, ProductType } from '../../../types';
+import { Order, OrderStatus, PaymentStatus, ProductType } from '../../../types/index';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import OrderFormCustomerSection from './OrderFormCustomerSection';
 import OrderFormItemsSection from './OrderFormItemsSection';
 import OrderFormStatusSection from './OrderFormStatusSection';
-import { DEFAULT_PRICES } from '../../../constants';
+import { DEFAULT_PRICES } from '../../../constants/index';
 
 interface OrderFormProps {
   initialData?: Order | null;
