@@ -148,14 +148,10 @@ export const fetchOrders = async (): Promise<Order[]> => {
 };
 
 // Helper to find the next order number (ORD-XXXXXX)
-// In a high-concurrency real app, this should be a transaction or a Cloud Function.
-const getNextOrderNumber = async (): Promise<string> => {
+export const getNextOrderNumber = async (): Promise<string> => {
   try {
     const ordersRef = collection(db, 'orders');
     // Sort by orderNumber string desc to get the highest one.
-    // NOTE: This relies on string sorting "ORD-000002" > "ORD-000001".
-    // If orderNumber is missing in many docs, this query might act unexpectedly without an index, 
-    // but typically it just skips nulls.
     const q = query(ordersRef, orderBy('orderNumber', 'desc'), limit(1));
     const snapshot = await getDocs(q);
 
@@ -183,8 +179,8 @@ export const addOrder = async (orderData: any): Promise<void> => {
   try {
     const ordersRef = collection(db, 'orders');
     
-    // Generate Order Number
-    const orderNumber = await getNextOrderNumber();
+    // Use provided order number or generate new one
+    const orderNumber = orderData.orderNumber || await getNextOrderNumber();
 
     // Map internal form data to specific Firestore flat structure + structured customer
     const payload = {
@@ -270,47 +266,6 @@ export const deleteOrder = async (orderId: string): Promise<void> => {
     await deleteDoc(orderRef);
   } catch (error) {
     console.error("Error deleting order:", error);
-    throw error;
-  }
-};
-
-// MIGRATION TOOL
-export const migrateOrderNumbers = async (): Promise<void> => {
-  try {
-    // 1. Fetch all orders (we reuse fetchOrders but raw snapshot is better to avoid type confusion, 
-    // but fetchOrders is consistent with sorting needs).
-    const orders = await fetchOrders();
-
-    // 2. Sort by Date Ascending to ensure numbering follows timeline
-    const sortedOrders = orders.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    let currentCount = 0;
-
-    // 3. Find max existing number to avoid collisions if partially migrated
-    for (const order of sortedOrders) {
-       if (order.orderNumber && order.orderNumber.startsWith('ORD-')) {
-          const num = parseInt(order.orderNumber.split('-')[1], 10);
-          if (!isNaN(num) && num > currentCount) {
-             currentCount = num;
-          }
-       }
-    }
-
-    // 4. Update missing ones
-    let updates = 0;
-    for (const order of sortedOrders) {
-      if (!order.orderNumber) {
-        currentCount++;
-        const newNumber = `ORD-${String(currentCount).padStart(6, '0')}`;
-        
-        const orderRef = doc(db, 'orders', order.id);
-        await updateDoc(orderRef, { orderNumber: newNumber });
-        updates++;
-      }
-    }
-    console.log(`Migration complete. Updated ${updates} orders.`);
-  } catch (error) {
-    console.error("Migration failed:", error);
     throw error;
   }
 };
