@@ -3,7 +3,7 @@ import { Download, Calendar, Eye, Settings, Check, ChevronDown, ArrowRight, Tabl
 import { useLanguage } from '../../../contexts/LanguageContext';
 import BaseModal from '../../../components/BaseModal';
 import { Order } from '../../../types';
-import { exportOrdersToExcel, ExportColumn } from '../../../services/orderService';
+import { exportOrdersToExcel, ExportColumn } from '../../../utils/xlsx';
 
 interface ExportModalProps {
   isOpen: boolean;
