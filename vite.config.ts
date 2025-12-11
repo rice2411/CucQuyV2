@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import { stat } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
@@ -109,6 +110,40 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react(),
         vitePluginApi(), // Plugin để xử lý API routes
+        VitePWA({
+          registerType: 'autoUpdate',
+          includeAssets: ['icon.svg', 'icon.png'],
+          manifest: {
+            name: 'Tiệm bánh Cúc Quy',
+            short_name: 'CucQuy',
+            description: 'Hệ thống quản lý đơn hàng thông minh cho Tiệm bánh Cúc Quy',
+            theme_color: '#ea580c',
+            background_color: '#ffffff',
+            display: 'standalone',
+            orientation: 'portrait-primary',
+            start_url: '/',
+            icons: [
+              {
+                src: './icon.svg',
+                sizes: 'any',
+                type: 'image/svg+xml'
+              }
+            ]
+          },
+          workbox: {
+            // Precache offline.html
+            additionalManifestEntries: [
+              { url: '/offline.html', revision: null }
+            ],
+            // NetworkFirst cho navigation, fallback về offline.html khi network fail
+            navigateFallback: '/offline.html',
+            navigateFallbackDenylist: [/^\/api/, /^\/offline\.html$/]
+          },
+          devOptions: {
+            enabled: true,
+            type: 'module'
+          }
+        })
       ],
       define: {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),

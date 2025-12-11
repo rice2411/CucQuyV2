@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No Internet - Tiệm bánh Cúc Quy</title>
+    <link rel="apple-touch-icon" href="./icon.png">
+    <link rel="icon" type="image/png" href="./icon.png" />
     <meta name="theme-color" content="#ea580c">
     <style>
         body {
@@ -64,7 +66,16 @@
         </svg>
         <h1>No Internet Connection</h1>
         <p>It seems you are offline. Please check your internet connection and try again to access CucQuy Bakery.</p>
-        <button class="btn" onclick="window.location.href = '/'">Try Again</button>
+        <button class="btn" onclick="checkConnectionAndReload()">Try Again</button>
+    <script>
+        async function checkConnectionAndReload() {
+            window.location.replace('/?t=' + Date.now());
+        }
+
+       
+        
+    </script>
     </div>
 </body>
 </html>
+

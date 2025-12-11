@@ -11,7 +11,6 @@ import TransactionsPage from './pages/Transactions/index';
 import InventoryPage from './pages/Inventory/index';
 import CustomersPage from './pages/Customers/index';
 import SettingsPage from './pages/Settings/index';
-import SePayWebhookViewer from './components/SePayWebhookViewer';
 
 const App: React.FC = () => {
   return (
@@ -28,7 +27,6 @@ const App: React.FC = () => {
                   <Route path="inventory" element={<InventoryPage />} />
                   <Route path="customers" element={<CustomersPage />} />
                   <Route path="settings" element={<SettingsPage />} />
-                  <Route path="sepay-webhook" element={<SePayWebhookViewer />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>
