@@ -84,7 +84,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       orderNumber: extractFormattedOrderCode(webhookData.description)
 
     };
-    const transactionsRef = collection(db, 'transaction');
+    const transactionsRef = collection(db, 'transactions');
     await addDoc(transactionsRef, transactionData);
 
     const orderNumber = extractFormattedOrderCode(webhookData.description);
