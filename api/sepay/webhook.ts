@@ -51,7 +51,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
     
     const db = firebaseFirestore.getFirestore(app);
-    const { collection, addDoc, Timestamp, doc, updateDoc } = firebaseFirestore;
+    const { collection, addDoc, Timestamp, doc, updateDoc, query, where, getDocs } = firebaseFirestore;
     const extractFormattedOrderCode = (str: string) => {
       const match = str.match(/ORD\d+/);
       return match ? match[0].replace(/ORD(\d+)/, "ORD-$1") : null;
@@ -79,10 +79,27 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     await addDoc(transactionsRef, transactionData);
 
     const orderNumber = extractFormattedOrderCode(webhookData.description);
-    const orderRef = doc(db, 'orders', orderNumber);
-    await updateDoc(orderRef, {
-      paymentStatus: "PAID",
-    });
+    
+   // 1. Query tìm order có field orderNumber = "ORD-1234"
+  const ordersRef = collection(db, "orders");
+  const q = query(ordersRef, where("orderNumber", "==", orderNumber));
+
+  const snapshot = await getDocs(q);
+
+  // 2. Check không tìm thấy
+  if (snapshot.empty) {
+    throw new Error(`Order with number "${orderNumber}" not found`);
+  }
+
+  // 3. Lấy document đầu tiên
+  const docSnap = snapshot.docs[0];
+  const orderRef = doc(db, "orders", docSnap.id);
+
+  // 4. Update thanh toán
+  await updateDoc(orderRef, {
+    paymentStatus: "PAID",
+  });
+
 
     return res.status(200).json({
       success: true,
