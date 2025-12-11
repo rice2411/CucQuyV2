@@ -6,14 +6,21 @@ const CACHE_URLS = [
   '/manifest.json',
   '/offline.html'
 ];
-
 self.addEventListener('install', (event) => {
-  // Cache các file cần thiết
+  // Cache các file cần thiết, gồm cả offline page, icon, và các URL khai báo sẵn
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CACHE_URLS.map(url => new Request(url, { cache: 'reload' })));
+      const urlsToCache = [
+        OFFLINE_URL,
+        './icon.svg',
+        // Các URL trong CACHE_URLS (nếu tồn tại)
+        ...CACHE_URLS.map(url => new Request(url, { cache: 'reload' }))
+      ];
+
+      return cache.addAll(urlsToCache);
     })
   );
+
   // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
