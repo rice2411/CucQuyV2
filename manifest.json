@@ -2,7 +2,7 @@
   "name": "Tiệm bánh Cúc Quy",
   "short_name": "CucQuy",
   "description": "Hệ thống quản lý đơn hàng thông minh cho Tiệm bánh Cúc Quy",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ea580c",
