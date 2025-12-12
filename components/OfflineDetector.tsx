@@ -36,9 +36,10 @@ const OfflineDetector: React.FC<{ children: React.ReactNode }> = ({
     // Listen cho online event
     const handleOnline = () => {
       setIsOffline(false);
-      // Nếu đang ở offline page, reload về trang chính
+      // Nếu đang ở offline page, reload về trang chính với cache busting
       if (window.location.pathname.includes("offline.html")) {
-        window.location.href = "/";
+        const timestamp = Date.now();
+        window.location.replace('/?t=' + timestamp + '&_sw-bypass=true');
       }
     };
 
