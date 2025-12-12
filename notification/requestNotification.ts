@@ -4,6 +4,7 @@ import { getToken } from "firebase/messaging";
 
 export async function requestPermission() {
   const permission = await Notification.requestPermission();
+  alert(permission);
   if (permission !== "granted") return null;
 
   const token = await getToken(messaging, {
