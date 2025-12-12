@@ -4,7 +4,9 @@ export const translations = {
       dashboard: "Dashboard",
       orders: "Orders",
       inventory: "Inventory",
+      storage: "Storage",
       customers: "Customers",
+      users: "User Management",
       transactions: "Transactions",
       settings: "Settings",
       signOut: "Sign Out",
@@ -15,7 +17,9 @@ export const translations = {
       dashboardTitle: "Dashboard Overview",
       ordersTitle: "Order Management",
       inventoryTitle: "Product Inventory",
+      storageTitle: "Ingredient Storage",
       customersTitle: "Customer Management",
+      usersTitle: "User Management",
       transactionsTitle: "Payment Transactions",
       systemOp: "System Operational"
     },
@@ -90,6 +94,26 @@ export const translations = {
       inactive: "Inactive",
       deleteConfirm: "Are you sure you want to delete this product?"
     },
+    storage: {
+      title: "Ingredients",
+      addIngredient: "Add Ingredient",
+      searchPlaceholder: "Search ingredients...",
+      noIngredients: "No ingredients found.",
+      createFirst: "Add your first ingredient",
+      formTitleAdd: "Add New Ingredient",
+      formTitleEdit: "Edit Ingredient",
+      name: "Ingredient Name",
+      quantity: "Quantity",
+      unit: "Unit",
+      minQuantity: "Min Quantity (Alert)",
+      price: "Cost per Unit (VND)",
+      supplier: "Supplier",
+      notes: "Notes",
+      lastUpdated: "Last Updated",
+      totalValue: "Total Value",
+      lowStock: "Low Stock Items",
+      deleteConfirm: "Are you sure you want to delete this ingredient?"
+    },
     customers: {
       title: "Customers",
       add: "Add Customer",
@@ -117,6 +141,47 @@ export const translations = {
       delete: {
         title: "Delete Customer",
         confirm: "Are you sure you want to delete this customer? This action cannot be undone."
+      }
+    },
+    users: {
+      title: "User Management",
+      searchPlaceholder: "Search by name, email...",
+      noUsers: "No users found.",
+      stats: {
+        total: "Total Users",
+        pending: "Pending",
+        active: "Active",
+        inactive: "Inactive"
+      },
+      status: {
+        pending: "Pending",
+        active: "Active",
+        inactive: "Inactive"
+      },
+      filter: {
+        all: "All Status"
+      },
+      table: {
+        user: "User",
+        customName: "Custom Name",
+        status: "Status",
+        lastLogin: "Last Login",
+        actions: "Actions"
+      },
+      actions: {
+        approve: "Approve",
+        activate: "Activate",
+        deactivate: "Deactivate",
+        edit: "Edit",
+        cancel: "Cancel",
+        save: "Save"
+      },
+      messages: {
+        statusUpdated: "User status updated successfully",
+        customNameUpdated: "Custom name updated successfully",
+        loadError: "Failed to load users",
+        updateStatusError: "Failed to update status",
+        updateCustomNameError: "Failed to update custom name"
       }
     },
     transactions: {
@@ -152,7 +217,8 @@ export const translations = {
       cancel: "Cancel",
       save: "Save Order",
       saving: "Saving...",
-      saveProduct: "Save Product"
+      saveProduct: "Save Product",
+      saveIngredient: "Save Ingredient"
     },
     detail: {
       orderId: "Order #",
@@ -194,6 +260,26 @@ export const translations = {
       amount: "Amount",
       content: "Content",
       instruction: "Scan with any banking app to pay."
+    },
+    login: {
+      welcome: "Welcome back! Please sign in to continue.",
+      googleButton: "Sign in with Google",
+      currentAccount: "Current Account",
+      useCurrentAccount: "Continue with this account",
+      switchAccount: "Switch Account / Add New",
+      recentAccounts: "Recent Accounts",
+      accountRemoved: "Account removed from history",
+      removeAccount: "Remove account"
+    },
+    units: {
+      kg: "kg",
+      g: "g",
+      l: "l",
+      ml: "ml",
+      pcs: "pcs",
+      box: "box",
+      can: "can",
+      bottle: "bottle"
     }
   },
   vi: {
@@ -201,7 +287,9 @@ export const translations = {
       dashboard: "Tổng quan",
       orders: "Đơn hàng",
       inventory: "Kho hàng",
+      storage: "Nguyên liệu",
       customers: "Khách hàng",
+      users: "Quản lý người dùng",
       transactions: "Giao dịch",
       settings: "Cài đặt",
       signOut: "Đăng xuất",
@@ -212,6 +300,7 @@ export const translations = {
       dashboardTitle: "Tổng quan hệ thống",
       ordersTitle: "Quản lý đơn hàng",
       inventoryTitle: "Kho sản phẩm",
+      storageTitle: "Kho nguyên liệu",
       customersTitle: "Quản lý khách hàng",
       transactionsTitle: "Lịch sử giao dịch",
       systemOp: "Hệ thống ổn định"
@@ -287,6 +376,26 @@ export const translations = {
       inactive: "Ngừng bán",
       deleteConfirm: "Bạn có chắc chắn muốn xóa sản phẩm này không?"
     },
+    storage: {
+      title: "Nguyên liệu",
+      addIngredient: "Thêm nguyên liệu",
+      searchPlaceholder: "Tìm nguyên liệu...",
+      noIngredients: "Chưa có nguyên liệu nào.",
+      createFirst: "Thêm nguyên liệu đầu tiên",
+      formTitleAdd: "Thêm nguyên liệu mới",
+      formTitleEdit: "Sửa nguyên liệu",
+      name: "Tên nguyên liệu",
+      quantity: "Số lượng",
+      unit: "Đơn vị",
+      minQuantity: "Tối thiểu (Báo động)",
+      price: "Đơn giá (VND)",
+      supplier: "Nhà cung cấp",
+      notes: "Ghi chú",
+      lastUpdated: "Cập nhật lần cuối",
+      totalValue: "Tổng giá trị",
+      lowStock: "Sắp hết hàng",
+      deleteConfirm: "Bạn có chắc chắn muốn xóa nguyên liệu này không?"
+    },
     customers: {
       title: "Khách hàng",
       add: "Thêm khách hàng",
@@ -314,6 +423,47 @@ export const translations = {
       delete: {
         title: "Xóa khách hàng",
         confirm: "Bạn có chắc chắn muốn xóa khách hàng này không? Hành động này không thể hoàn tác."
+      }
+    },
+    users: {
+      title: "Quản lý người dùng",
+      searchPlaceholder: "Tìm theo tên, email...",
+      noUsers: "Không tìm thấy người dùng nào.",
+      stats: {
+        total: "Tổng người dùng",
+        pending: "Chờ phê duyệt",
+        active: "Đã kích hoạt",
+        inactive: "Đã vô hiệu hóa"
+      },
+      status: {
+        pending: "Chờ phê duyệt",
+        active: "Đã kích hoạt",
+        inactive: "Đã vô hiệu hóa"
+      },
+      filter: {
+        all: "Tất cả trạng thái"
+      },
+      table: {
+        user: "Người dùng",
+        customName: "Tên gợi nhớ",
+        status: "Trạng thái",
+        lastLogin: "Đăng nhập cuối",
+        actions: "Thao tác"
+      },
+      actions: {
+        approve: "Phê duyệt",
+        activate: "Kích hoạt",
+        deactivate: "Vô hiệu hóa",
+        edit: "Chỉnh sửa",
+        cancel: "Hủy",
+        save: "Lưu"
+      },
+      messages: {
+        statusUpdated: "Cập nhật trạng thái thành công",
+        customNameUpdated: "Cập nhật tên gợi nhớ thành công",
+        loadError: "Không thể tải danh sách người dùng",
+        updateStatusError: "Không thể cập nhật trạng thái",
+        updateCustomNameError: "Không thể cập nhật tên gợi nhớ"
       }
     },
     transactions: {
@@ -349,7 +499,8 @@ export const translations = {
       cancel: "Hủy bỏ",
       save: "Lưu đơn hàng",
       saving: "Đang lưu...",
-      saveProduct: "Lưu sản phẩm"
+      saveProduct: "Lưu sản phẩm",
+      saveIngredient: "Lưu nguyên liệu"
     },
     detail: {
       orderId: "Đơn hàng #",
@@ -391,6 +542,26 @@ export const translations = {
       amount: "Số tiền",
       content: "Nội dung",
       instruction: "Quét mã bằng ứng dụng ngân hàng để thanh toán."
+    },
+    login: {
+      welcome: "Chào mừng trở lại! Vui lòng đăng nhập để tiếp tục.",
+      googleButton: "Đăng nhập bằng Google",
+      currentAccount: "Tài khoản hiện tại",
+      useCurrentAccount: "Tiếp tục với tài khoản này",
+      switchAccount: "Chọn tài khoản khác / Thêm mới",
+      recentAccounts: "Tài khoản đã đăng nhập",
+      accountRemoved: "Đã xóa tài khoản khỏi danh sách",
+      removeAccount: "Xóa tài khoản"
+    },
+    units: {
+      kg: "kg",
+      g: "g",
+      l: "l",
+      ml: "ml",
+      pcs: "cái",
+      box: "hộp",
+      can: "lon",
+      bottle: "chai"
     }
   }
 };

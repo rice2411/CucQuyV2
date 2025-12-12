@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle, Hash, Loader2 } from 'lucide-react';
 import { Order, OrderStatus, PaymentStatus, PaymentMethod, ProductType } from '../../../types/index';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { getUserByUid } from '../../../services/userService';
 import { getNextOrderNumber } from '../../../services/orderService';
 import OrderFormCustomerSection from './OrderFormCustomerSection';
 import OrderFormItemsSection from './OrderFormItemsSection';
@@ -26,6 +28,7 @@ const PRODUCT_TYPES = [ProductType.FAMILY, ProductType.FRIENDSHIP];
 
 const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) => {
   const { t } = useLanguage();
+  const { currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -201,6 +204,20 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
          };
       });
 
+      // Lấy thông tin người tạo đơn
+      let creatorName = '';
+      if (currentUser) {
+        try {
+          const userData = await getUserByUid(currentUser.uid);
+          // Ưu tiên customName, nếu không có thì dùng email
+          creatorName = userData?.customName || currentUser.email || '';
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Fallback về email nếu không lấy được userData
+          creatorName = currentUser.email || '';
+        }
+      }
+
       const formData = {
         id: initialData?.id,
         orderNumber: orderNumber, // Pass the calculated order number
@@ -215,7 +232,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
         notes: note,
         status: status,
         paymentStatus: paymentStatus,
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        createdBy: creatorName // Thêm thông tin người tạo
       };
 
       await onSave(formData);

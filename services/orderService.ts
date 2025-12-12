@@ -1,8 +1,9 @@
 import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, limit } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Order, OrderStatus, PaymentStatus, PaymentMethod, ProductType, OrderItem, Customer } from '../types/index';
+import { Order, ProductType, OrderItem, Customer } from '../types/index';
 import { DEFAULT_PRICES } from '../constants/index';
 import { sendMessageToGroup } from './zaloService';
+import { getDate, mapStatus, getPaymentStatus, getPaymentMethod, getProductImage, calculateOrderTotal } from '../utils/orderUtils';
 
 export const fetchOrders = async (): Promise<Order[]> => {
   try {
@@ -13,63 +14,6 @@ export const fetchOrders = async (): Promise<Order[]> => {
     
     return snapshot.docs.map(doc => {
       const data = doc.data();
-      
-      // Helper to safely convert Firestore timestamps or strings to ISO string
-      const getDate = (val: any) => {
-        if (!val) return new Date().toISOString();
-        if (val.toDate && typeof val.toDate === 'function') {
-          return val.toDate().toISOString();
-        }
-        return new Date(val).toISOString();
-      };
-
-      // Helper to map Firestore status string to Enum
-      const mapStatus = (status: string): OrderStatus => {
-        const s = (status || '').toLowerCase();
-        if (s === 'completed' || s === 'success') return OrderStatus.DELIVERED;
-        if (s === 'shipping' || s === 'shipped') return OrderStatus.SHIPPED;
-        if (s === 'pending') return OrderStatus.PENDING;
-        if (s === 'cancelled' || s === 'fail') return OrderStatus.CANCELLED;
-        if (s === 'returned') return OrderStatus.RETURNED;
-        if (s === 'processing') return OrderStatus.PROCESSING;
-        
-        // Fallback checks against Enum values directly
-        const enumValues = Object.values(OrderStatus).map(v => v.toLowerCase());
-        if (enumValues.includes(s as any)) {
-            // Find the matching key/value
-            const match = Object.values(OrderStatus).find(v => v.toLowerCase() === s);
-            if (match) return match;
-        }
-
-        return OrderStatus.PROCESSING; // Default fallback
-      };
-
-      // Helper for Payment Status normalization
-      const getPaymentStatus = (val: any): PaymentStatus => {
-         if (!val) return PaymentStatus.UNPAID;
-         const s = String(val).toLowerCase();
-         if (s === 'paid') return PaymentStatus.PAID;
-         if (s === 'refunded') return PaymentStatus.REFUNDED;
-         return PaymentStatus.UNPAID;
-      };
-
-      // Helper for Payment Method normalization
-      const getPaymentMethod = (val: any): PaymentMethod => {
-         const s = String(val || '').toLowerCase();
-         if (s === 'banking' || s === 'transfer' || s === 'chuyển khoản') return PaymentMethod.BANKING;
-         return PaymentMethod.CASH;
-      };
-
-      // Helper to generate a consistent image based on product type
-      const getProductImage = (type: string) => {
-        const t = (type || '').toLowerCase();
-        if (t.includes('family') || t.includes('gia đình')) return 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&q=80&w=200';
-        if (t.includes('friend') || t.includes('tình bạn')) return 'https://images.unsplash.com/photo-1621236378699-8597f840b45a?auto=format&fit=crop&q=80&w=200';
-        if (t.includes('set') || t.includes('quà') || t.includes('gif')) return 'https://images.unsplash.com/photo-1549488352-22668e9e6c1c?auto=format&fit=crop&q=80&w=200';
-        if (t.includes('cookie') || t.includes('bánh')) return 'https://images.unsplash.com/photo-1499636138143-bd649025ebeb?auto=format&fit=crop&q=80&w=200';
-        if (t.includes('cake') || t.includes('kem')) return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200';
-        return `https://placehold.co/200x200?text=${encodeURIComponent(type || 'Product')}`;
-      };
 
       const typeLower = (data.type || '').toLowerCase();
 
@@ -112,12 +56,8 @@ export const fetchOrders = async (): Promise<Order[]> => {
           }];
       }
 
-      // CONSISTENCY CHECK: Recalculate total using standard formula: Price * Quantity + Shipping
-      const calculatedSubtotal = items.reduce((sum: number, item: OrderItem) => {
-          return sum + (Number(item.price) * Number(item.quantity));
-      }, 0);
-
-      const finalTotal = calculatedSubtotal + Number(shippingCost);
+      // Recalculate total using standard formula: Price * Quantity + Shipping
+      const finalTotal = calculateOrderTotal(items, shippingCost);
 
       // Customer Construction: Prefer 'customer' object, fallback to flat fields
       let customer: Customer = data.customer ? { ...data.customer } : {
@@ -148,7 +88,8 @@ export const fetchOrders = async (): Promise<Order[]> => {
         paymentMethod: getPaymentMethod(data.paymentMethod),
         date: getDate(data.orderDate || data.createdAt),
         trackingNumber: data.trackingNumber,
-        notes: data.note || data.notes || ''
+        notes: data.note || data.notes || '',
+        createdBy: data.createdBy || undefined
       } as Order;
     });
   } catch (error) {
@@ -224,7 +165,8 @@ export const addOrder = async (orderData: any): Promise<void> => {
       orderDate: Timestamp.now(),
       createdAt: Timestamp.now(),
       paymentStatus: orderData.paymentStatus || 'Unpaid',
-      paymentMethod: orderData.paymentMethod || 'Cash'
+      paymentMethod: orderData.paymentMethod || 'Cash',
+      createdBy: orderData.createdBy || undefined // Thêm thông tin người tạo
     };
      await addDoc(ordersRef, payload);
     await sendMessageToGroup(payload as any);

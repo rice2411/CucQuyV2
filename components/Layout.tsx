@@ -1,41 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Package, Users, Settings, Menu, Moon, Sun, ArrowRightLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, ShoppingCart, Package, Users, Settings, Menu, ArrowRightLeft, Archive, LogOut, UserCog } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
+import toast from 'react-hot-toast';
 
 const Layout: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDarkMode(true);
-    }
-  };
   
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'vi' : 'en');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success(t('nav.signOut') + ' success');
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to log out');
+    }
   };
 
   const navItems = [
@@ -43,7 +33,9 @@ const Layout: React.FC = () => {
     { id: '/orders', label: t('nav.orders'), icon: ShoppingCart },
     { id: '/transactions', label: t('nav.transactions'), icon: ArrowRightLeft },
     { id: '/inventory', label: t('nav.inventory'), icon: Package },
+    { id: '/storage', label: t('nav.storage'), icon: Archive },
     { id: '/customers', label: t('nav.customers'), icon: Users },
+    { id: '/users', label: t('nav.users'), icon: UserCog },
     { id: '/settings', label: t('nav.settings'), icon: Settings, disabled: true },
   ];
 
@@ -52,7 +44,9 @@ const Layout: React.FC = () => {
     if (location.pathname === '/orders') return t('header.ordersTitle');
     if (location.pathname === '/transactions') return t('header.transactionsTitle');
     if (location.pathname === '/inventory') return t('header.inventoryTitle');
+    if (location.pathname === '/storage') return t('header.storageTitle');
     if (location.pathname === '/customers') return t('header.customersTitle');
+    if (location.pathname === '/users') return t('header.usersTitle');
     return 'CucQuyBakery';
   };
 
@@ -85,6 +79,16 @@ const Layout: React.FC = () => {
               {item.disabled && <span className="ml-auto text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 px-1.5 py-0.5 rounded">{t('nav.soon')}</span>}
             </Link>
           ))}
+          
+          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-700">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              {t('nav.signOut')}
+            </button>
+          </div>
         </nav>
       </aside>
 
@@ -124,12 +128,7 @@ const Layout: React.FC = () => {
               </span>
             </button>
 
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <ThemeToggle />
 
              <div className="flex items-center gap-2">
                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -138,11 +137,21 @@ const Layout: React.FC = () => {
              
              <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-700">
                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white leading-none">Admin</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">admin@cucquy.com</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white leading-none">
+                      {currentUser?.displayName || 'Admin'}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {currentUser?.email || 'admin@cucquy.com'}
+                    </p>
                  </div>
                  <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-slate-700 overflow-hidden border border-slate-300 dark:border-slate-600 flex items-center justify-center">
-                    <span className="text-orange-600 font-bold">A</span>
+                    {currentUser?.photoURL ? (
+                      <img src={currentUser.photoURL} alt="User" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-orange-600 font-bold">
+                        {currentUser?.displayName?.charAt(0).toUpperCase() || 'A'}
+                      </span>
+                    )}
                  </div>
              </div>
           </div>
@@ -176,6 +185,16 @@ const Layout: React.FC = () => {
                   {item.disabled && <span className="ml-auto text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 px-1.5 py-0.5 rounded">{t('nav.soon')}</span>}
                 </Link>
               ))}
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 transition-all"
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                {t('nav.signOut')}
+              </button>
             </nav>
           </div>
         )}
