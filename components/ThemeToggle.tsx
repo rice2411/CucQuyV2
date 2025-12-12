@@ -13,27 +13,47 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+        setIsDarkMode(true);
+        document.documentElement.classList.add('dark');
+      } else {
+        setIsDarkMode(false);
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (error) {
+      console.error('Error reading theme from localStorage:', error);
+      // Fallback: check if dark class already exists
+      const isDark = document.documentElement.classList.contains('dark');
+      setIsDarkMode(isDark);
     }
   }, []);
 
   const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDarkMode(true);
+    try {
+      const newTheme = !isDarkMode;
+      setIsDarkMode(newTheme);
+      
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+    } catch (error) {
+      console.error('Error toggling theme:', error);
+      // Fallback: just toggle class without localStorage
+      if (isDarkMode) {
+        document.documentElement.classList.remove('dark');
+        setIsDarkMode(false);
+      } else {
+        document.documentElement.classList.add('dark');
+        setIsDarkMode(true);
+      }
     }
   };
 
