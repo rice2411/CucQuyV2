@@ -31,6 +31,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
   const { currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   const [orderNumber, setOrderNumber] = useState('');
   const [loadingOrderNumber, setLoadingOrderNumber] = useState(false);
@@ -178,6 +179,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
 
   const total = calculateTotal();
 
+  const handleCancel = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onCancel();
+    }, 280);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -245,14 +253,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={onCancel}></div>
+      <div 
+        className={`absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${isClosing ? 'opacity-0' : 'opacity-100'}`} 
+        onClick={handleCancel}
+      ></div>
       <div className="absolute inset-y-0 right-0 max-w-xl w-full flex pointer-events-none">
-        <div className="w-full h-full bg-white dark:bg-slate-800 shadow-2xl flex flex-col pointer-events-auto animate-slide-in-right">
+        <div className={`w-full h-full bg-white dark:bg-slate-800 shadow-2xl flex flex-col pointer-events-auto transition-colors duration-200 ${isClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`}>
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               {initialData ? t('form.editTitle') : t('form.createTitle')}
             </h2>
-            <button onClick={onCancel} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors">
+            <button onClick={handleCancel} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -317,7 +328,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
           <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-end gap-3">
             <button 
               type="button" 
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isSubmitting}
               className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
