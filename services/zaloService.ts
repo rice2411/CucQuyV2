@@ -30,7 +30,7 @@ export const sendMessageToGroup = async (order: any) => {
 
 💵 Phương thức thanh toán: ${order.paymentMethod}
 💰 Phí ship: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.shippingCost || 0)}
-💬 Ghi chú: ${order.notes || '(không có)'}
+💬 Ghi chú: ${order.note || '(không có)'}
 
 💰 Tổng tiền: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total)}
 💳 Trạng thái thanh toán: ${order.paymentStatus}

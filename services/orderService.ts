@@ -76,7 +76,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
 
       // Ensure ID exists
       if (!customer.id) {
-         customer.id = `CUST-${doc.id.substring(0, 6)}`;
+         customer.id = `${doc.id.substring(0, 6)}`;
       }
 
       return {
@@ -92,7 +92,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
         paymentMethod: getPaymentMethod(data.paymentMethod),
         date: getDate(data.orderDate || data.createdAt),
         trackingNumber: data.trackingNumber,
-        notes: data.note || data.notes || '',
+        note: data.note || '',
         createdBy: data.createdBy || undefined
       } as Order;
     });
@@ -164,7 +164,7 @@ export const addOrder = async (orderData: any): Promise<void> => {
       items: orderData.items || [], // New Array structure
       shippingCost: orderData.shippingCost || 0,
       total: orderData.total || 0,
-      note: orderData.notes || '',
+      note: orderData.note || '',
       status: (orderData.status || 'pending').toLowerCase(),
       orderDate: Timestamp.now(),
       createdAt: Timestamp.now(),
@@ -208,7 +208,7 @@ export const updateOrder = async (orderId: string, orderData: any): Promise<void
       items: orderData.items || [],
       shippingCost: orderData.shippingCost || 0,
       total: orderData.total || 0,
-      note: orderData.notes || '',
+      note: orderData.note || '',
       status: (orderData.status || 'pending').toLowerCase(),
       paymentStatus: orderData.paymentStatus || 'Unpaid',
       paymentMethod: orderData.paymentMethod || 'Cash',

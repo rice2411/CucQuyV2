@@ -26,7 +26,7 @@ const AVAILABLE_COLUMNS: ExportColumn[] = [
   { id: 'payment', label: 'Payment Status', field: (o) => o.paymentStatus },
   { id: 'paymentMethod', label: 'Payment Method', field: (o) => o.paymentMethod || '' },
   { id: 'sepayId', label: 'Transaction ID', field: (o) => o.sepayId || '' },
-  { id: 'notes', label: 'Notes', field: (o) => o.notes },
+  { id: 'note', label: 'Note', field: (o) => o.note },
 ];
 
 const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, orders }) => {

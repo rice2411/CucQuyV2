@@ -22,6 +22,6 @@ export interface Order {
   paymentMethod: PaymentMethod;
   date: string;
   trackingNumber?: string;
-  notes?: string;
+  note?: string;
   createdBy?: string; // Tên người tạo đơn (customName hoặc email)
 }

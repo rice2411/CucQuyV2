@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, Phone, Mail, Truck, CreditCard, Sparkles, AlertTriangle, FileText, QrCode, Copy, Receipt, Wallet } from 'lucide-react';
+import { X, MapPin, Phone, Mail, Truck, CreditCard, Sparkles, AlertTriangle, FileText, QrCode, Copy, Receipt, Wallet, StickyNote } from 'lucide-react';
 import { Order, OrderItem, PaymentMethod } from '../../../types';
 import { STATUS_COLORS } from '../../../constants';
 import { generateOrderAnalysis } from '../../../services/geminiService';
@@ -150,10 +150,24 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onClose, onEdit }) => 
                       )}
                     </div>
                   </div>
-                  {order.notes && (
-                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-700">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Notes</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{order.notes}"</p>
+                </div>
+
+                {/* Note Section - Separate card */}
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm transition-colors">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wide flex items-center gap-2">
+                    {t('detail.note')}
+                  </h3>
+                  {order.note ? (
+                    <div className="bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700 rounded-lg p-4">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white leading-relaxed whitespace-pre-wrap">
+                        {order.note}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700 rounded-lg p-4">
+                      <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+                        {t('detail.noNote') || 'No note provided'}
+                      </p>
                     </div>
                   )}
                 </div>

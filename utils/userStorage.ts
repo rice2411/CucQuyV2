@@ -1,5 +1,4 @@
-import { User } from 'firebase/auth';
-
+import { UserData, UserRole } from '../types/user';
 const USER_STORAGE_KEY = 'cucquybakery_user';
 
 export interface StoredUser {
@@ -7,13 +6,14 @@ export interface StoredUser {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  role: UserRole;
 }
 
 /**
  * Lưu thông tin user vào localStorage
  * @param user - User object từ Firebase Auth hoặc null để xóa
  */
-export const saveUserToLocalStorage = (user: User | null): void => {
+export const saveUserToLocalStorage = (user: UserData | null): void => {
   try {
     if (user) {
       const userData: StoredUser = {
@@ -21,7 +21,10 @@ export const saveUserToLocalStorage = (user: User | null): void => {
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
+        role: user.role,
+
       };
+      console.log(userData);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
     } else {
       localStorage.removeItem(USER_STORAGE_KEY);
@@ -139,7 +142,7 @@ export const getAccountsHistory = (): AccountHistory[] => {
  * Thêm hoặc cập nhật tài khoản vào lịch sử đăng nhập
  * @param user - User object từ Firebase Auth
  */
-export const addAccountToHistory = (user: User): void => {
+export const addAccountToHistory = (user: UserData): void => {
   try {
     const history = getAccountsHistory();
     const now = new Date().toISOString();

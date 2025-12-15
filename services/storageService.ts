@@ -18,7 +18,7 @@ export const fetchIngredients = async (): Promise<Ingredient[]> => {
         minQuantity: Number(data.minQuantity || 0),
         price: Number(data.price || 0),
         supplier: data.supplier || '',
-        notes: data.notes || '',
+        note: data.note || '',
         updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString()
       } as Ingredient;
     });

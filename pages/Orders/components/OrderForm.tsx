@@ -55,7 +55,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       setCustomerName(initialData.customer.name);
       setPhone(initialData.customer.phone);
       setAddress(initialData.customer.address);
-      setNote(initialData.notes || '');
+      setNote(initialData.note || '');
       setStatus(initialData.status);
       setPaymentStatus(initialData.paymentStatus || PaymentStatus.UNPAID);
       setPaymentMethod(initialData.paymentMethod || PaymentMethod.CASH);
@@ -237,7 +237,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
         items: finalItems,
         shippingCost: Number(shippingCost),
         total: total,
-        notes: note,
+        note: note,
         status: status,
         paymentStatus: paymentStatus,
         paymentMethod: paymentMethod,

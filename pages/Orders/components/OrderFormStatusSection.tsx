@@ -83,7 +83,7 @@ const OrderFormStatusSection: React.FC<OrderStatusSectionProps> = ({
       </div>
       
       <div>
-         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('form.notes')}</label>
+         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('form.note')}</label>
          <div className="relative">
             <StickyNote className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
             <textarea 

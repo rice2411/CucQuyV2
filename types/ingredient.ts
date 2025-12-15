@@ -6,6 +6,6 @@ export interface Ingredient {
   minQuantity: number;
   price: number; // Cost per unit
   supplier?: string;
-  notes?: string;
+  note?: string;
   updatedAt: string;
 }
