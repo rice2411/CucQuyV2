@@ -163,9 +163,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onClose, onEdit }) => 
                    <div className="space-y-4">
                      {order.items.map((item) => (
                        <div key={item.id} className="flex items-center gap-4 py-2">
-                         <img src={item.image} alt={item.productName} className="w-16 h-16 rounded-lg object-cover bg-slate-100 dark:bg-slate-700" />
+                         <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover bg-slate-100 dark:bg-slate-700" />
                          <div className="flex-1">
-                           <h4 className="text-sm font-medium text-slate-900 dark:text-white">{item.productName}</h4>
+                           <h4 className="text-sm font-medium text-slate-900 dark:text-white">{item.name}</h4>
                            <p className="text-xs text-slate-500 dark:text-slate-400">ID: {item.id}</p>
                          </div>
                          <div className="text-right">

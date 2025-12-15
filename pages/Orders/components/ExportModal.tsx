@@ -18,7 +18,7 @@ const AVAILABLE_COLUMNS: ExportColumn[] = [
   { id: 'customer', label: 'Customer Name', field: (o) => o.customer.name },
   { id: 'phone', label: 'Phone', field: (o) => `'${o.customer.phone}` }, // Add quote to force string in Excel
   { id: 'address', label: 'Address', field: (o) => o.customer.address },
-  { id: 'items', label: 'Products', field: (o) => o.items.map(i => `${i.productName} (x${i.quantity})`).join('; ') },
+  { id: 'items', label: 'Products', field: (o) => o.items.map(i => `${i.name} (x${i.quantity})`).join('; ') },
   { id: 'subtotal', label: 'Subtotal', field: (o) => (o.total - (o.shippingCost || 0)) },
   { id: 'shipping', label: 'Shipping', field: (o) => o.shippingCost || 0 },
   { id: 'total', label: 'Total', field: (o) => o.total },

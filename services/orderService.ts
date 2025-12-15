@@ -39,17 +39,21 @@ export const fetchOrders = async (): Promise<Order[]> => {
       let items: OrderItem[] = [];
       if (data.items && Array.isArray(data.items)) {
          // Map existing items ensuring ID and Image exist
-         items = data.items.map((item: any, idx: number) => ({
+         // Support both productName (legacy) and name (new) for backward compatibility
+         items = data.items.map((item: any, idx: number) => {
+           const itemName = item.name || item.productName || 'Unknown Product';
+           return {
              id: item.id || `ITEM-${doc.id}-${idx}`,
-             productName: item.productName || 'Unknown Product',
+             name: itemName,
              quantity: Number(item.quantity) || 1,
              price: Number(item.price) || 0,
-             image: item.image || getProductImage(item.productName)
-         }));
+             image: item.image || getProductImage(itemName)
+           };
+         });
       } else {
          items = [{
-            id: `ITEM-${doc.id}`,
-            productName: data.type ? (data.type.charAt(0).toUpperCase() + data.type.slice(1)) : 'Assorted Items',
+            id: `${doc.id}`,
+            name: data.type ? (data.type.charAt(0).toUpperCase() + data.type.slice(1)) : 'Assorted Items',
             quantity: quantity,
             price: Number(price), 
             image: getProductImage(data.type)

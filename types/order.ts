@@ -3,7 +3,7 @@ import { Customer } from './customer';
 
 export interface OrderItem {
   id: string;
-  productName: string;
+  name: string;
   quantity: number;
   price: number;
   image: string;

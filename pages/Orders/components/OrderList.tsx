@@ -12,6 +12,7 @@ interface OrderListProps {
 }
 
 const OrderList: React.FC<OrderListProps> = ({ orders, onSelectOrder, onDeleteOrder, onUpdateOrder }) => {
+  console.log(orders);
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -71,7 +72,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onSelectOrder, onDeleteOr
       
       // Product Filter
       const matchesProduct = !productFilter || order.items.some(item => 
-        item.productName.toLowerCase().includes(productFilter.toLowerCase())
+        item.name.toLowerCase().includes(productFilter.toLowerCase())
       );
 
       // Month Filter
@@ -156,7 +157,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onSelectOrder, onDeleteOr
     const remainingCount = order.items.length - 1;
     return (
       <div className="flex flex-col">
-        <span className="font-medium text-slate-700 dark:text-slate-300 line-clamp-1" title={firstItem.productName}>{firstItem.productName}</span>
+        <span className="font-medium text-slate-700 dark:text-slate-300 line-clamp-1" title={firstItem.name}>{firstItem.name}</span>
         {remainingCount > 0 && (
           <span className="text-xs text-slate-500 italic">+{remainingCount} more</span>
         )}

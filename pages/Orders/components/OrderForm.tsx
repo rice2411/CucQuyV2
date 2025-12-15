@@ -64,10 +64,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       if (initialData.items && initialData.items.length > 0) {
         const loadedItems = initialData.items.map((item, index) => {
            let type = ProductType.CUSTOM;
-           let customName = item.productName;
+           let customName = item.name;
 
            // Try to match ProductType
-           const normalizedType = item.productName.toLowerCase();
+           const normalizedType = item.name.toLowerCase();
            if (normalizedType.includes('family') || normalizedType.includes('gia đình')) {
              type = ProductType.FAMILY;
              customName = '';
@@ -206,7 +206,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
          if (!finalProductName.trim()) throw new Error("Product name is required for all items");
          
          return {
-           productName: finalProductName,
+           name: finalProductName,
            quantity: Number(item.quantity),
            price: Number(item.unitPrice)
          };
