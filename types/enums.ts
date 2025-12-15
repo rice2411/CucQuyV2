@@ -18,8 +18,4 @@ export enum PaymentMethod {
   BANKING = 'Banking'
 }
 
-export enum ProductType {
-  FAMILY = 'Family',
-  FRIENDSHIP = 'Friendship',
-  CUSTOM = 'Custom'
-}
+

@@ -1,7 +1,6 @@
 import { collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, limit } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Order, ProductType, OrderItem, Customer } from '../types/index';
-import { DEFAULT_PRICES } from '../constants/index';
+import { Order, OrderItem, Customer } from '../types/index';
 import { sendMessageToGroup } from './zaloService';
 import { getDate, mapStatus, getPaymentStatus, getPaymentMethod, getProductImage, calculateOrderTotal } from '../utils/orderUtils';
 
@@ -15,35 +14,19 @@ export const fetchOrders = async (): Promise<Order[]> => {
     return snapshot.docs.map(doc => {
       const data = doc.data();
 
-      const typeLower = (data.type || '').toLowerCase();
-
       // Synthetic Item creation from flat fields
       const quantity = typeof data.quantity === 'number' ? data.quantity : 1;
       const shippingCost = typeof data.shippingCost === 'number' ? data.shippingCost : 0;
       
       // Attempt to deduce unit price if not present
       let price = data.price;
-      
-      // Fix/Default price logic for Sets
-      if (!price || Number(price) === 0) {
-          if (typeLower.includes('family')) price = DEFAULT_PRICES[ProductType.FAMILY];
-          else if (typeLower.includes('friend')) price = DEFAULT_PRICES[ProductType.FRIENDSHIP];
-          else {
-             // Fallback for custom/other: try to deduce from total if available
-             const tempTotal = typeof data.total === 'number' ? data.total : 0;
-             price = quantity > 0 ? (tempTotal - shippingCost) / quantity : 0;
-          }
-      }
 
-      // Use stored items if available, otherwise construct from legacy flat fields
       let items: OrderItem[] = [];
       if (data.items && Array.isArray(data.items)) {
-         // Map existing items ensuring ID and Image exist
-         // Support both productName (legacy) and name (new) for backward compatibility
-         items = data.items.map((item: any, idx: number) => {
+        data.items.map((item: any, idx: number) => {
            const itemName = item.name || item.productName || 'Unknown Product';
            return {
-             id: item.id || `ITEM-${doc.id}-${idx}`,
+             id: item.id,
              name: itemName,
              quantity: Number(item.quantity) || 1,
              price: Number(item.price) || 0,

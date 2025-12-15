@@ -39,12 +39,11 @@ export const sendMessageToGroup = async (order: any) => {
 `;
 
   try {
-    const response = await axios.post(`${url}/${shopCode}/${token}`, {
+    await axios.post(`${url}/${shopCode}/${token}`, {
       send_from_number: "84776750418",
       send_to_groupid: "165291943369399492",
       message: message,
     });
-    console.log("Gửi tin nhắn thành công:", response.data);
   } catch (error: any) {
     console.error("Lỗi khi gửi tin nhắn:", error.response?.data || error.message);
   }

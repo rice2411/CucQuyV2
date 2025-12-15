@@ -24,7 +24,6 @@ export const saveUserToLocalStorage = (user: UserData | null): void => {
         role: user.role,
 
       };
-      console.log(userData);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
     } else {
       localStorage.removeItem(USER_STORAGE_KEY);

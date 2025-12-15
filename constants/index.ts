@@ -1,9 +1,4 @@
-import { OrderStatus, ProductType } from '../types/index';
-
-export const DEFAULT_PRICES = {
-  [ProductType.FAMILY]: 35000,
-  [ProductType.FRIENDSHIP]: 22000,
-};
+import { OrderStatus} from '../types/index';
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
   [OrderStatus.PENDING]: "bg-yellow-100 text-yellow-800",

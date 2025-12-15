@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle, Hash, Loader2 } from 'lucide-react';
-import { Order, OrderStatus, PaymentStatus, PaymentMethod, ProductType } from '../../../types/index';
+import { Order, OrderStatus, PaymentStatus, PaymentMethod, Product } from '../../../types/index';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getUserByUid } from '../../../services/userService';
 import { getNextOrderNumber } from '../../../services/orderService';
+import { fetchProducts } from '../../../services/productService';
 import OrderFormCustomerSection from './OrderFormCustomerSection';
 import OrderFormItemsSection from './OrderFormItemsSection';
 import OrderFormStatusSection from './OrderFormStatusSection';
-import { DEFAULT_PRICES } from '../../../constants/index';
 
 interface OrderFormProps {
   initialData?: Order | null;
@@ -17,15 +17,12 @@ interface OrderFormProps {
 }
 
 export interface FormItem {
-  internalId: string;
-  productType: ProductType;
-  customProduct: string;
+  productId: string;
+  productName: string;
+  image?: string;
   quantity: number;
   unitPrice: number;
 }
-
-const PRODUCT_TYPES = [ProductType.FAMILY, ProductType.FRIENDSHIP];
-
 const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) => {
   const { t } = useLanguage();
   const { currentUser } = useAuth();
@@ -41,12 +38,26 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
   
   // New: Multiple Items State
   const [items, setItems] = useState<FormItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [shippingCost, setShippingCost] = useState(0);
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<OrderStatus>(OrderStatus.PENDING);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.UNPAID);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
+
+  // Load products from inventory
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to load products', error);
+      }
+    };
+    loadProducts();
+  }, []);
 
   // Initialize Data
   useEffect(() => {
@@ -63,36 +74,22 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       
       if (initialData.items && initialData.items.length > 0) {
         const loadedItems = initialData.items.map((item, index) => {
-           let type = ProductType.CUSTOM;
-           let customName = item.name;
-
-           // Try to match ProductType
-           const normalizedType = item.name.toLowerCase();
-           if (normalizedType.includes('family') || normalizedType.includes('gia đình')) {
-             type = ProductType.FAMILY;
-             customName = '';
-           } else if (normalizedType.includes('friend') || normalizedType.includes('tình bạn')) {
-             type = ProductType.FRIENDSHIP;
-             customName = '';
-           }
-
            return {
-             internalId: `existing-${index}-${Date.now()}`,
-             productType: type,
-             customProduct: customName,
+             productId: item.id,
+             productName: item.name,
              quantity: item.quantity,
-             unitPrice: item.price
+             unitPrice: item.price,
+             image: item.image
            };
         });
         setItems(loadedItems);
       } else {
-        // Fallback for empty items array (shouldn't happen)
         setItems([{
-           internalId: `new-0`,
-           productType: ProductType.FAMILY,
-           customProduct: '',
-           quantity: 5,
-           unitPrice: DEFAULT_PRICES[ProductType.FAMILY]
+           productId: products[0]?.id,
+           productName: products[0]?.name || '',
+           quantity: 1,
+           unitPrice: products[0]?.price || 0,
+           image: products[0]?.image
         }]);
       }
     } else {
@@ -121,51 +118,57 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       setPaymentMethod(PaymentMethod.CASH);
       
       setItems([{
-         internalId: `new-${Date.now()}`,
-         productType: ProductType.FAMILY,
-         customProduct: '',
-         quantity: 5,
-         unitPrice: DEFAULT_PRICES[ProductType.FAMILY]
+         productId: products[0]?.id,
+         productName: products[0]?.name || '',
+         quantity: 1,
+         unitPrice: products[0]?.price || 0,
+         image: products[0]?.image
       }]);
     }
-  }, [initialData]);
+  }, [initialData, products]);
 
   const handleAddItem = () => {
+    const first = products[0];
     setItems([...items, {
-      internalId: `new-${Date.now()}`,
-      productType: ProductType.FAMILY,
-      customProduct: '',
-      quantity: 5,
-      unitPrice: DEFAULT_PRICES[ProductType.FAMILY]
+      productId: first?.id,
+      productName: first?.name || '',
+      quantity: 1,
+      unitPrice: first?.price || 0,
+      image: first?.image
     }]);
   };
 
-  const handleRemoveItem = (internalId: string) => {
-    setItems(items.filter(i => i.internalId !== internalId));
+  const handleRemoveItem = (productId: string) => {
+    setItems(items.filter(i => i.productId !== productId));
   };
 
-  const handleUpdateItem = (internalId: string, field: keyof FormItem, value: any) => {
+  const handleUpdateItem = (productId: string, field: keyof FormItem, value: any) => {
     setItems(items.map(item => {
-      if (item.internalId === internalId) {
-        const updated = { ...item, [field]: value };
-        
-        // Auto-update price/qty defaults if product type changes
-        if (field === 'productType') {
-           if (value === ProductType.FAMILY) {
-             updated.quantity = 5;
-             updated.unitPrice = DEFAULT_PRICES[ProductType.FAMILY];
-             updated.customProduct = '';
-           } else if (value === ProductType.FRIENDSHIP) {
-             updated.quantity = 3;
-             updated.unitPrice = DEFAULT_PRICES[ProductType.FRIENDSHIP];
-             updated.customProduct = '';
-           } else if (value === ProductType.CUSTOM) {
-             updated.quantity = 1;
-             updated.unitPrice = 0;
-             updated.customProduct = '';
-           }
+      if (item.productId === productId) {
+        // If selecting a product
+        if (field === 'productId') {
+          const selected = products.find(p => p.id === value);
+          if (selected) {
+            return {
+              ...item,
+              productId: selected.id,
+              productName: selected.name,
+              unitPrice: selected.price,
+              image: selected.image
+            };
+          }
+          // Custom item
+          return {
+            ...item,
+            productId: undefined,
+            productName: '',
+            unitPrice: 0,
+            image: undefined
+          };
         }
-        return updated;
+
+        // Otherwise update field normally
+        return { ...item, [field]: value };
       }
       return item;
     }));
@@ -199,16 +202,18 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
       if (items.length === 0) {
         throw new Error("At least one product is required");
       }
-
       // Prepare items payload
       const finalItems = items.map(item => {
-         const finalProductName = item.productType === ProductType.CUSTOM ? item.customProduct : item.productType;
-         if (!finalProductName.trim()) throw new Error("Product name is required for all items");
+         const finalProductName = item.productName?.trim();
+         if (!finalProductName) throw new Error("Product name is required for all items");
+         if (!item.productId) throw new Error("Please select a product for all items");
          
          return {
+           id: item.productId,
            name: finalProductName,
            quantity: Number(item.quantity),
-           price: Number(item.unitPrice)
+           price: Number(item.unitPrice),
+           image: item.image
          };
       });
 
@@ -308,10 +313,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ initialData, onSave, onCancel }) 
               onAddItem={handleAddItem}
               onRemoveItem={handleRemoveItem}
               onUpdateItem={handleUpdateItem}
-              shippingCost={shippingCost} 
+              shippingCost={shippingCost}
               setShippingCost={setShippingCost}
               total={total}
-              productTypes={PRODUCT_TYPES}
+              products={products}
             />
 
             <hr className="border-slate-100 dark:border-slate-700" />
