@@ -85,7 +85,7 @@ const App: React.FC = () => {
       </HashRouter>
       {/* Global toast configuration - match project color palette & support dark/light mode */}
       <Toaster
-        position="top-center"
+        position="top-right"
         reverseOrder={false}
         toastOptions={{
           duration: 3000,
