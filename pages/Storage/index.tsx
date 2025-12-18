@@ -4,15 +4,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Product, Ingredient } from '@/types';
 import { fetchProducts, addProduct, updateProduct } from '@/services/productService';
 import { fetchIngredients, addIngredient, updateIngredient } from '@/services/ingredientService';
-import ProductForm from '@/pages/Storage/components/ProductForm';
-import ConfirmModal from '@/components/ConfirmModal';
-import TabsHeader from '@/pages/Storage/components/TabsHeader';
-import ProductToolbar from '@/pages/Storage/components/ProductToolbar';
-import ProductGrid from '@/pages/Storage/components/ProductGrid';
-import PlaceholderTab from '@/pages/Storage/components/PlaceholderTab';
-import IngredientToolbar from '@/pages/Storage/components/IngredientToolbar';
-import IngredientGrid from '@/pages/Storage/components/IngredientGrid';
-import IngredientForm from '@/pages/Storage/components/IngredientForm';
+import TabsHeader from '@/pages/Storage/TabsHeader';
+import { ProductForm, ProductToolbar, ProductGrid } from '@/pages/Storage/product';
+import { IngredientForm, IngredientToolbar, IngredientGrid } from '@/pages/Storage/ingredient';
+import { PlaceholderTab } from '@/pages/Storage/recipe';
 
 type InventoryTab = 'products' | 'ingredients' | 'recipes';
 

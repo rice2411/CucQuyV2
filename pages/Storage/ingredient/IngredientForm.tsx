@@ -20,6 +20,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<IngredientTab>('details');
+  const [isClosing, setIsClosing] = useState(false);
 
   const [name, setName] = useState('');
   const [type, setType] = useState<IngredientType>(IngredientType.BASE);
@@ -200,7 +201,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
       };
 
       await onSave(payload);
-      onClose();
+      handleClose();
     } catch (err: any) {
       setError(err.message || t('ingredients.form.errors.saveFailed'));
     } finally {
@@ -285,13 +286,25 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
     }
   };
 
+  // Handle close with animation
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 300); // Match animation duration
+  };
+
   if (!isOpen) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+      <div 
+        className={`absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${isClosing ? 'opacity-0' : 'opacity-100'}`} 
+        onClick={handleClose}
+      ></div>
       <div className="absolute inset-y-0 right-0 max-w-2xl w-full flex pointer-events-none">
-        <div className="w-full h-full bg-white dark:bg-slate-800 shadow-2xl flex flex-col pointer-events-auto animate-slide-in-right">
+        <div className={`w-full h-full bg-white dark:bg-slate-800 shadow-2xl flex flex-col pointer-events-auto transition-colors duration-200 ${isClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`}>
           
           <div className="px-6 py-6 border-b border-slate-100 dark:border-slate-700 flex items-start justify-between bg-white dark:bg-slate-800">
             <div>
@@ -303,7 +316,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
               </p>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-full text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
@@ -705,7 +718,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
           <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
               className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
