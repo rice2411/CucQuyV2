@@ -5,7 +5,7 @@ import { OrderProvider } from "./contexts/OrderContext";
 import { CustomerProvider } from "./contexts/CustomerContext";
 import { SupplierProvider } from "./contexts/SupplierContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import OfflineDetector from "./components/OfflineDetector";
+import { useOfflineDetector } from "./hooks/useOfflineDetector";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
@@ -22,9 +22,16 @@ import { routes } from "./config/routes";
 import { Toaster } from "react-hot-toast";
 
 const App: React.FC = () => {
+  // Use offline detector hook
+  const isOffline = useOfflineDetector();
+
+  // If offline, don't render the app (will redirect to offline.html)
+  if (isOffline) {
+    return null;
+  }
+
   return (
-    <OfflineDetector>
-      <HashRouter>
+    <HashRouter>
         <AuthProvider>
           <LanguageProvider>
             <OrderProvider>
@@ -85,7 +92,6 @@ const App: React.FC = () => {
             </OrderProvider>
           </LanguageProvider>
         </AuthProvider>
-      </HashRouter>
       {/* Global toast configuration - match project color palette & support dark/light mode */}
       <Toaster
         position="top-right"
@@ -113,7 +119,7 @@ const App: React.FC = () => {
           },
         }}
       />
-    </OfflineDetector>
+      </HashRouter>
   );
 };
 
