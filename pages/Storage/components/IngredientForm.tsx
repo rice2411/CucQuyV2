@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertCircle, Box, PlusCircle, Save, Scale, Search, ShoppingBag, X } from 'lucide-react';
+import { AlertCircle, Box, Edit, PlusCircle, Save, Scale, Search, ShoppingBag, X } from 'lucide-react';
 import { Ingredient, IngredientHistory, IngredientHistoryType, IngredientType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSuppliers } from '@/contexts/SupplierContext';
@@ -33,6 +33,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
   const [historySupplierInput, setHistorySupplierInput] = useState('');
   const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
   const [historyDate, setHistoryDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
   const supplierRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
       setHistorySupplierId('');
       setHistorySupplierInput('');
       setHistoryDate(new Date().toISOString().slice(0, 10));
+      setEditingHistoryId(null);
       setActiveTab('details');
     } else {
       setName('');
@@ -61,6 +63,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
       setHistorySupplierId('');
       setHistorySupplierInput('');
       setHistoryDate(new Date().toISOString().slice(0, 10));
+      setEditingHistoryId(null);
       setActiveTab('details');
     }
     setError(null);
@@ -121,6 +124,36 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
     setHistorySupplierId(id);
     setHistorySupplierInput(name);
     setShowSupplierDropdown(false);
+  };
+
+  // Handle edit history item - load data into form
+  const handleEditHistory = (item: IngredientHistory) => {
+    setEditingHistoryId(item.id);
+    setHistoryType(item.type);
+    setHistoryQuantity(item.quantity);
+    setHistoryPrice(item.price || 0);
+    setHistoryNote(item.note || '');
+    setHistorySupplierId(item.supplierId || '');
+    setHistorySupplierInput(item.supplierName || '');
+    setHistoryDate(new Date(item.createdAt).toISOString().slice(0, 10));
+    setError(null);
+    // Scroll to form
+    const formElement = document.querySelector('[data-history-form]');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Cancel edit mode
+  const handleCancelEdit = () => {
+    setEditingHistoryId(null);
+    setHistoryQuantity(0);
+    setHistoryPrice(0);
+    setHistoryNote('');
+    setHistorySupplierId('');
+    setHistorySupplierInput('');
+    setHistoryDate(new Date().toISOString().slice(0, 10));
+    setError(null);
   };
 
   const handleDeleteHistory = async (id: string) => {
@@ -187,18 +220,41 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
     try {
       setIsSubmitting(true);
       const supplier = suppliers.find((s) => s.id === historySupplierId);
-      const newEntry: IngredientHistory = {
-        id: crypto.randomUUID(),
-        type: historyType,
-        quantity: historyQuantity,
-        unit,
-        price: historyPrice,
-        note: historyNote.trim(),
-        supplierId: historyType === IngredientHistoryType.IMPORT ? historySupplierId : undefined,
-        supplierName: historyType === IngredientHistoryType.IMPORT ? supplier?.name || '' : undefined,
-        createdAt: new Date(historyDate || Date.now()).toISOString(),
-      };
-      const newHistory = [newEntry, ...history];
+      
+      let newHistory: IngredientHistory[];
+      
+      if (editingHistoryId) {
+        // Update existing history item
+        newHistory = history.map((item) => 
+          item.id === editingHistoryId
+            ? {
+                ...item,
+                type: historyType,
+                quantity: historyQuantity,
+                price: historyPrice,
+                note: historyNote.trim(),
+                supplierId: historyType === IngredientHistoryType.IMPORT ? historySupplierId : undefined,
+                supplierName: historyType === IngredientHistoryType.IMPORT ? supplier?.name || '' : undefined,
+                createdAt: new Date(historyDate || Date.now()).toISOString(),
+              }
+            : item
+        );
+      } else {
+        // Add new history item
+        const newEntry: IngredientHistory = {
+          id: crypto.randomUUID(),
+          type: historyType,
+          quantity: historyQuantity,
+          unit,
+          price: historyPrice,
+          note: historyNote.trim(),
+          supplierId: historyType === IngredientHistoryType.IMPORT ? historySupplierId : undefined,
+          supplierName: historyType === IngredientHistoryType.IMPORT ? supplier?.name || '' : undefined,
+          createdAt: new Date(historyDate || Date.now()).toISOString(),
+        };
+        newHistory = [newEntry, ...history];
+      }
+      
       const newQuantity = newHistory.reduce((acc, item) => {
         const isImport =
           item.type === IngredientHistoryType.IMPORT || item.type === 'IMPORT' || item.type === 'import';
@@ -206,6 +262,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
       }, 0);
 
       setHistory(newHistory);
+      setEditingHistoryId(null);
       setHistoryQuantity(0);
       setHistoryPrice(0);
       setHistoryNote('');
@@ -293,7 +350,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                     {t('ingredients.form.name')} *
                   </label>
                   <div className="relative">
-                    <ShoppingBag className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                    <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
                     <input
                       type="text"
                       required
@@ -311,11 +368,18 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                       {t('ingredients.form.type')} *
                     </label>
                     <div className="relative">
-                      <Box className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                      <Box className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
                       <select
                         value={type}
                         onChange={(e) => setType(e.target.value as IngredientType)}
-                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                        className="w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none appearance-none cursor-pointer"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundSize: '1.5em 1.5em',
+                          paddingRight: '2.5rem',
+                        }}
                       >
                         {Object.values(IngredientType).map((value) => {
                           const key = value.toString().toLowerCase();
@@ -336,7 +400,14 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                     <select
                       value={unit}
                       onChange={(e) => setUnit(e.target.value as 'g' | 'piece')}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.5rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.5em 1.5em',
+                        paddingRight: '2.5rem',
+                      }}
                     >
                       <option value="g">g</option>
                       <option value="piece">{t('ingredients.form.unitPiece')}</option>
@@ -346,10 +417,21 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm space-y-4">
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
-                    {t('ingredients.form.historyTitle')}
-                  </h3>
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm space-y-4" data-history-form>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wide">
+                      {editingHistoryId ? t('ingredients.form.historyEditTitle') : t('ingredients.form.historyTitle')}
+                    </h3>
+                    {editingHistoryId && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      >
+                        {t('form.cancel')}
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1 uppercase tracking-wide">
@@ -358,7 +440,14 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                       <select
                         value={historyType}
                         onChange={(e) => setHistoryType(e.target.value as IngredientHistoryType)}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none appearance-none cursor-pointer"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundSize: '1.5em 1.5em',
+                          paddingRight: '2.5rem',
+                        }}
                       >
                         <option value={IngredientHistoryType.IMPORT}>{t('ingredients.form.historyTypeImport')}</option>
                       </select>
@@ -368,7 +457,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                         {t('ingredients.form.quantity')}
                     </label>
                     <div className="relative">
-                        <Scale className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                        <Scale className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
                         <input
                           type="number"
                           min="0"
@@ -396,7 +485,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                         {t('ingredients.form.historyPrice')}
                       </label>
                       <div className="relative">
-                        <Scale className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                        <Scale className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
                         <input
                           type="number"
                           min="0"
@@ -425,7 +514,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                           {t('ingredients.form.supplier')}
                         </label>
                         <div className="relative">
-                          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
                           <input
                             type="text"
                             value={historySupplierInput}
@@ -464,10 +553,20 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                     <button
                       type="button"
                       onClick={handleAddHistory}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
-                      <PlusCircle className="w-4 h-4" />
-                      {t('ingredients.form.historyAdd')}
+                      {editingHistoryId ? (
+                        <>
+                          <Save className="w-4 h-4" />
+                          {t('form.save')}
+                        </>
+                      ) : (
+                        <>
+                          <PlusCircle className="w-4 h-4" />
+                          {t('ingredients.form.historyAdd')}
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -483,61 +582,114 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                   ) : (
                     <div className="space-y-3">
                       {sortedHistory.map((item) => {
-                        const isImport = item.type === 'import' || item.type === 'IMPORT';
+                        const isImport = item.type === 'import' || item.type === 'IMPORT' || item.type === IngredientHistoryType.IMPORT;
                         const bg = isImport
-                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700';
+                          ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-600'
+                          : 'bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-600';
                         const textColor = isImport
                           ? 'text-green-700 dark:text-green-300'
                           : 'text-red-700 dark:text-red-300';
                         const totals = historyTotals.get(item.id);
+                        const isEditing = editingHistoryId === item.id;
                         return (
                           <div
                             key={item.id}
-                            className={`flex items-start justify-between border rounded-lg p-3 ${bg}`}
+                            className={`flex items-start justify-between border rounded-xl p-4 ${bg} ${isEditing ? 'ring-2 ring-orange-500 dark:ring-orange-400' : ''} transition-all`}
                           >
-                            <div className="space-y-1">
-                            <p className={`text-sm font-semibold ${textColor}`}>
-                                {isImport
-                                  ? t('ingredients.form.historyTypeImport')
-                                  : t('ingredients.form.historyTypeUsage')}
-                              </p>
-                            <p
-                              className={`text-sm font-semibold ${
-                                isImport
-                                  ? 'text-green-700 dark:text-green-300'
-                                  : 'text-red-700 dark:text-red-300'
-                              }`}
-                            >
-                                {item.quantity} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
-                              </p>
+                            <div className="flex-1 space-y-2">
+                              {/* Type and Date Header */}
+                              <div className="flex items-center justify-between">
+                                <p className={`text-sm font-bold ${textColor} uppercase tracking-wide`}>
+                                  {isImport
+                                    ? t('ingredients.form.historyTypeImport')
+                                    : t('ingredients.form.historyTypeUsage')}
+                                </p>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                  {new Date(item.createdAt).toLocaleDateString('vi-VN', { 
+                                    day: '2-digit', 
+                                    month: '2-digit', 
+                                    year: 'numeric' 
+                                  })}
+                                </span>
+                              </div>
+
+                              {/* Quantity - Highlighted */}
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                  {t('ingredients.form.quantity')}:
+                                </span>
+                                <p className={`text-lg font-bold ${textColor}`}>
+                                  {item.quantity} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                </p>
+                              </div>
+
+                              {/* Price - Highlighted */}
                               {typeof item.price === 'number' && item.price > 0 && (
-                                <p className="text-xs text-slate-600 dark:text-slate-300">
-                                  {t('ingredients.form.historyPrice')}: {item.price}
-                                </p>
+                                <div className="flex items-baseline gap-2 bg-white/60 dark:bg-slate-800/60 px-3 py-2 rounded-lg">
+                                  <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                    {t('ingredients.form.historyPrice')}:
+                                  </span>
+                                  <p className="text-base font-bold text-orange-600 dark:text-orange-400">
+                                    {new Intl.NumberFormat('vi-VN', { 
+                                      style: 'currency', 
+                                      currency: 'VND' 
+                                    }).format(item.price)}
+                                  </p>
+                                </div>
                               )}
+
+                              {/* Before/After Quantity - Highlighted */}
                               {totals && (
-                                <p className="text-xs text-slate-600 dark:text-slate-300">
-                                  {t('ingredients.form.historyQuantityBefore')}: {totals.before} → {totals.after}
-                                </p>
+                                <div className="flex items-center gap-2 bg-white/60 dark:bg-slate-800/60 px-3 py-2 rounded-lg">
+                                  <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                    {t('ingredients.form.historyQuantityBefore') || 'Số lượng'}:
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                      {totals.before} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                    </span>
+                                    <span className="text-slate-400 dark:text-slate-500">→</span>
+                                    <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                      {totals.after} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                    </span>
+                                  </div>
+                                </div>
                               )}
+
+                              {/* Supplier */}
                               {item.supplierName && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {t('ingredients.form.supplier')}: {item.supplierName}
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                  <span className="font-medium">{t('ingredients.form.supplier')}:</span> {item.supplierName}
                                 </p>
                               )}
+
+                              {/* Note */}
                               {item.note && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{item.note}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 italic">
+                                  "{item.note}"
+                                </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                              <span>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</span>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col items-end gap-2 ml-4">
+                              <button
+                                type="button"
+                                onClick={() => handleEditHistory(item)}
+                                disabled={isSubmitting}
+                                className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                title={t('form.edit')}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteHistory(item.id)}
-                                className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 font-semibold"
+                                disabled={isSubmitting}
+                                className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                title={t('ingredients.form.historyDelete')}
                               >
-                                {t('ingredients.form.historyDelete')}
+                                <X className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
