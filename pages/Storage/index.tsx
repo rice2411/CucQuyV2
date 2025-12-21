@@ -7,7 +7,9 @@ import { fetchIngredients, addIngredient, updateIngredient } from '@/services/in
 import TabsHeader from '@/pages/Storage/TabsHeader';
 import { ProductForm, ProductToolbar, ProductGrid } from '@/pages/Storage/product';
 import { IngredientForm, IngredientToolbar, IngredientGrid } from '@/pages/Storage/ingredient';
-import { PlaceholderTab } from '@/pages/Storage/recipe';
+import { RecipeForm, RecipeToolbar, RecipeGrid } from '@/pages/Storage/recipe';
+import { fetchRecipes, addRecipe, updateRecipe } from '@/services/recipeService';
+import { Recipe } from '@/types';
 
 type InventoryTab = 'products' | 'ingredients' | 'recipes';
 
@@ -15,10 +17,13 @@ const InventoryPage: React.FC = () => {
   const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingIngredients, setLoadingIngredients] = useState(true);
+  const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [ingredientSearch, setIngredientSearch] = useState('');
+  const [recipeSearch, setRecipeSearch] = useState('');
   const [activeTab, setActiveTab] = useState<InventoryTab>('products');
   
   // Form State
@@ -26,6 +31,8 @@ const InventoryPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [isIngredientFormOpen, setIsIngredientFormOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<Ingredient | undefined>(undefined);
+  const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | undefined>(undefined);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -47,6 +54,17 @@ const InventoryPage: React.FC = () => {
 
   useEffect(() => {
     loadIngredients();
+  }, []);
+
+  const loadRecipes = async () => {
+    setLoadingRecipes(true);
+    const data = await fetchRecipes();
+    setRecipes(data);
+    setLoadingRecipes(false);
+  };
+
+  useEffect(() => {
+    loadRecipes();
   }, []);
 
   const handleCreate = () => {
@@ -109,6 +127,36 @@ const InventoryPage: React.FC = () => {
     );
   }, [ingredients, ingredientSearch, t]);
 
+  const filteredRecipes = useMemo(() => {
+    return recipes.filter((recipe) =>
+      recipe.name.toLowerCase().includes(recipeSearch.toLowerCase()) ||
+      (recipe.description && recipe.description.toLowerCase().includes(recipeSearch.toLowerCase()))
+    );
+  }, [recipes, recipeSearch]);
+
+  // Recipe handlers
+  const handleCreateRecipe = () => {
+    setEditingRecipe(undefined);
+    setIsRecipeFormOpen(true);
+  };
+
+  const handleEditRecipe = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setIsRecipeFormOpen(true);
+  };
+
+  const handleSaveRecipe = async (data: any) => {
+    if (data.id) {
+      await updateRecipe(data.id, data);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...payload } = data;
+      await addRecipe(payload);
+    }
+    await loadRecipes();
+    setIsRecipeFormOpen(false);
+  };
+
 
   const renderTabContent = () => {
     if (activeTab === 'products') {
@@ -148,7 +196,25 @@ const InventoryPage: React.FC = () => {
       );
     }
 
-    return <PlaceholderTab tab={activeTab} />;
+    if (activeTab === 'recipes') {
+      return (
+        <>
+          <RecipeToolbar
+            searchTerm={recipeSearch}
+            onSearchChange={setRecipeSearch}
+            onCreate={handleCreateRecipe}
+          />
+          <RecipeGrid
+            recipes={filteredRecipes}
+            loading={loadingRecipes}
+            onEdit={handleEditRecipe}
+            onCreate={handleCreateRecipe}
+          />
+        </>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -171,6 +237,16 @@ const InventoryPage: React.FC = () => {
           initialData={editingIngredient}
           onSave={handleSaveIngredient}
           onClose={() => setIsIngredientFormOpen(false)}
+        />
+      )}
+
+      {isRecipeFormOpen && (
+        <RecipeForm
+          isOpen={isRecipeFormOpen}
+          initialData={editingRecipe}
+          ingredients={ingredients}
+          onSave={handleSaveRecipe}
+          onClose={() => setIsRecipeFormOpen(false)}
         />
       )}
     </div>

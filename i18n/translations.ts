@@ -199,6 +199,48 @@ export const translations = {
         }
       }
     },
+    recipes: {
+      title: "Recipes",
+      add: "Add Recipe",
+      searchPlaceholder: "Search recipes...",
+      noData: "No recipes found.",
+      createFirst: "Add your first recipe",
+      loading: "Loading...",
+      ingredients: "ingredients",
+      servings: "servings",
+      more: "more",
+      form: {
+        addTitle: "Add Recipe",
+        editTitle: "Edit Recipe",
+        subtitle: "Create a recipe from ingredients",
+        name: "Recipe Name",
+        namePlaceholder: "e.g. Chocolate Cake",
+        description: "Description",
+        descriptionPlaceholder: "Brief description of the recipe...",
+        ingredients: "Ingredients",
+        addIngredientPlaceholder: "Search and add ingredients...",
+        instructions: "Instructions",
+        instructionsPlaceholder: "Step-by-step instructions...",
+        yield: "Yield",
+        yieldUnit: "Yield Unit",
+        yieldUnitPlaceholder: "e.g. pieces, servings",
+        useCalculatedYield: "Use calculated",
+        availableIngredients: "Available",
+        selectedIngredients: "Selected",
+        selected: "selected",
+        allIngredientsAdded: "All ingredients added",
+        allAdded: "All added",
+        none: "None",
+        noIngredientsSelected: "Click to add ingredients",
+        save: "Save Recipe",
+        errors: {
+          nameRequired: "Recipe name is required",
+          ingredientsRequired: "At least one ingredient is required",
+          quantityRequired: "All ingredient quantities must be greater than 0",
+          saveFailed: "Unable to save recipe"
+        }
+      }
+    },
     customers: {
       title: "Customers",
       add: "Add Customer",
@@ -610,6 +652,48 @@ export const translations = {
           toQuantityMustBeGreater: "Số lượng đến phải lớn hơn số lượng từ",
           supplierRequired: "Cần chọn nhà cung cấp khi nhập hàng",
           saveFailed: "Không thể lưu nguyên liệu"
+        }
+      }
+    },
+    recipes: {
+      title: "Công thức",
+      add: "Thêm công thức",
+      searchPlaceholder: "Tìm kiếm công thức...",
+      noData: "Không có công thức nào.",
+      createFirst: "Thêm công thức đầu tiên",
+      loading: "Đang tải...",
+      ingredients: "nguyên liệu",
+      servings: "phần",
+      more: "khác",
+      form: {
+        addTitle: "Thêm công thức",
+        editTitle: "Chỉnh sửa công thức",
+        subtitle: "Tạo công thức từ nguyên liệu",
+        name: "Tên công thức",
+        namePlaceholder: "VD: Bánh chocolate",
+        description: "Mô tả",
+        descriptionPlaceholder: "Mô tả ngắn về công thức...",
+        ingredients: "Nguyên liệu",
+        addIngredientPlaceholder: "Tìm và thêm nguyên liệu...",
+        instructions: "Hướng dẫn",
+        instructionsPlaceholder: "Hướng dẫn từng bước...",
+        yield: "Sản lượng",
+        yieldUnit: "Đơn vị sản lượng",
+        yieldUnitPlaceholder: "VD: cái, phần",
+        useCalculatedYield: "Dùng giá trị tính toán",
+        availableIngredients: "Có sẵn",
+        selectedIngredients: "Đã chọn",
+        selected: "đã chọn",
+        allIngredientsAdded: "Đã thêm tất cả nguyên liệu",
+        allAdded: "Đã thêm hết",
+        none: "Chưa có",
+        noIngredientsSelected: "Click để thêm nguyên liệu",
+        save: "Lưu công thức",
+        errors: {
+          nameRequired: "Tên công thức là bắt buộc",
+          ingredientsRequired: "Cần ít nhất một nguyên liệu",
+          quantityRequired: "Tất cả số lượng nguyên liệu phải lớn hơn 0",
+          saveFailed: "Không thể lưu công thức"
         }
       }
     },
