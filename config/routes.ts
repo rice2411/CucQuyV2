@@ -1,5 +1,5 @@
 import { UserRole } from '@/types/user';
-import { LayoutDashboard, ShoppingCart, Package, Users, Settings, ArrowRightLeft, UserCog, Building2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, Settings, ArrowRightLeft, UserCog, Building2, Bell } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 export interface RouteConfig {
@@ -55,6 +55,12 @@ export const routes: RouteConfig[] = [
     labelKey: 'nav.users',
     icon: UserCog,
     roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN] // Chỉ admin mới quản lý users
+  },
+  {
+    path: '/notifications',
+    labelKey: 'nav.notifications',
+    icon: Bell,
+    roles: [UserRole.SUPER_ADMIN]
   },
   {
     path: '/settings',

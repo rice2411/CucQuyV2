@@ -104,6 +104,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     sepayId: webhookData.id,
   });
 
+  // 5. Gửi thông báo Zalo về thanh toán
+  try {
+    const zaloUtil = await import('@/utils/zaloUtil');
+    const zaloService = await import('@/services/zaloService');
+    
+    const message = zaloUtil.formatPaymentReceivedMessage(
+      orderNumber,
+      Number(webhookData.transferAmount) || 0
+    );
+    
+    await zaloService.sendZaloMessage(message);
+  } catch (zaloError: any) {
+    console.error('❌ Error sending Zalo notification:', zaloError);
+  }
 
     return res.status(200).json({
       success: true,
