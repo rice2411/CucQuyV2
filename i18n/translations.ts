@@ -237,6 +237,9 @@ export const translations = {
     recipes: {
       title: "Recipes",
       add: "Add Recipe",
+      addBase: "Add Base Recipe",
+      addFull: "Add Full Recipe",
+      all: "All",
       searchPlaceholder: "Search recipes...",
       noData: "No recipes found.",
       createFirst: "Add your first recipe",
@@ -252,6 +255,12 @@ export const translations = {
       form: {
         addTitle: "Add Recipe",
         editTitle: "Edit Recipe",
+        addBaseRecipe: "Add Base Recipe",
+        editBaseRecipe: "Edit Base Recipe",
+        baseRecipeSubtitle: "Create a base recipe from basic ingredients",
+        addFullRecipe: "Add Full Recipe",
+        editFullRecipe: "Edit Full Recipe",
+        fullRecipeSubtitle: "Create a full recipe from base recipe + flavor + topping",
         subtitle: "Create a recipe from ingredients",
         name: "Recipe Name",
         namePlaceholder: "e.g. Chocolate Cake",
@@ -284,6 +293,8 @@ export const translations = {
         none: "None",
         noIngredientsSelected: "Click to add ingredients",
         outOfStock: "Out of stock",
+        setQuantity: "Set Quantity",
+        quantity: "Quantity",
         save: "Save Recipe",
         errors: {
           nameRequired: "Recipe name is required",
@@ -763,6 +774,9 @@ export const translations = {
     recipes: {
       title: "Công thức",
       add: "Thêm công thức",
+      addBase: "Thêm công thức nền",
+      addFull: "Thêm công thức bánh",
+      all: "Tất cả",
       searchPlaceholder: "Tìm kiếm công thức...",
       noData: "Không có công thức nào.",
       createFirst: "Thêm công thức đầu tiên",
@@ -778,6 +792,12 @@ export const translations = {
       form: {
         addTitle: "Thêm công thức",
         editTitle: "Chỉnh sửa công thức",
+        addBaseRecipe: "Thêm công thức nền",
+        editBaseRecipe: "Sửa công thức nền",
+        baseRecipeSubtitle: "Tạo công thức nền từ nguyên liệu cơ bản",
+        addFullRecipe: "Thêm công thức bánh",
+        editFullRecipe: "Sửa công thức bánh",
+        fullRecipeSubtitle: "Tạo công thức bánh từ công thức nền + hương vị + topping",
         subtitle: "Tạo công thức từ nguyên liệu",
         name: "Tên công thức",
         namePlaceholder: "VD: Bánh chocolate",
@@ -810,6 +830,8 @@ export const translations = {
         none: "Chưa có",
         noIngredientsSelected: "Click để thêm nguyên liệu",
         outOfStock: "Hết hàng",
+        setQuantity: "Nhập số lượng",
+        quantity: "Số lượng",
         save: "Lưu công thức",
         errors: {
           nameRequired: "Tên công thức là bắt buộc",

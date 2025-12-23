@@ -8,7 +8,11 @@ interface IngredientToolbarProps {
   onCreate: () => void;
 }
 
-const IngredientToolbar: React.FC<IngredientToolbarProps> = ({ searchTerm, onSearchChange, onCreate }) => {
+const IngredientToolbar: React.FC<IngredientToolbarProps> = ({ 
+  searchTerm, 
+  onSearchChange, 
+  onCreate
+}) => {
   const { t } = useLanguage();
 
   return (

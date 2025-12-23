@@ -7,7 +7,7 @@ import { fetchIngredients, addIngredient, updateIngredient } from '@/services/in
 import TabsHeader from '@/pages/Storage/TabsHeader';
 import { ProductForm, ProductToolbar, ProductGrid } from '@/pages/Storage/product';
 import { IngredientForm, IngredientToolbar, IngredientGrid } from '@/pages/Storage/ingredient';
-import { RecipeForm, RecipeToolbar, RecipeGrid } from '@/pages/Storage/recipe';
+import { BaseRecipeForm, FullRecipeForm, RecipeToolbar, RecipeGrid } from '@/pages/Storage/recipe';
 import { fetchRecipes, addRecipe, updateRecipe, deleteRecipe } from '@/services/recipeService';
 import { Recipe } from '@/types';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -33,10 +33,12 @@ const InventoryPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [isIngredientFormOpen, setIsIngredientFormOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<Ingredient | undefined>(undefined);
-  const [isRecipeFormOpen, setIsRecipeFormOpen] = useState(false);
+  const [isBaseRecipeFormOpen, setIsBaseRecipeFormOpen] = useState(false);
+  const [isFullRecipeFormOpen, setIsFullRecipeFormOpen] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | undefined>(undefined);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
   const [isDeletingRecipe, setIsDeletingRecipe] = useState(false);
+  const [recipeViewMode, setRecipeViewMode] = useState<'all' | 'base' | 'full'>('all');
 
   const loadProducts = async () => {
     setLoading(true);
@@ -132,24 +134,42 @@ const InventoryPage: React.FC = () => {
   }, [ingredients, ingredientSearch, t]);
 
   const filteredRecipes = useMemo(() => {
-    return recipes.filter((recipe) =>
+    let result = recipes.filter((recipe) =>
       recipe.name.toLowerCase().includes(recipeSearch.toLowerCase()) ||
       (recipe.description && recipe.description.toLowerCase().includes(recipeSearch.toLowerCase()))
     );
-  }, [recipes, recipeSearch]);
+
+    if (recipeViewMode === 'base') {
+      result = result.filter(r => r.recipeType === 'base' || (!r.recipeType && !r.baseRecipeId));
+    } else if (recipeViewMode === 'full') {
+      result = result.filter(r => r.recipeType === 'full' || (r.recipeType && r.baseRecipeId));
+    }
+
+    return result;
+  }, [recipes, recipeSearch, recipeViewMode]);
 
   // Recipe handlers
-  const handleCreateRecipe = () => {
+  const handleCreateBaseRecipe = () => {
     setEditingRecipe(undefined);
-    setIsRecipeFormOpen(true);
+    setIsBaseRecipeFormOpen(true);
+  };
+
+  const handleCreateFullRecipe = () => {
+    setEditingRecipe(undefined);
+    setIsFullRecipeFormOpen(true);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
     setEditingRecipe(recipe);
-    setIsRecipeFormOpen(true);
+    const recipeType = recipe.recipeType || (recipe.baseRecipeId ? 'full' : 'base');
+    if (recipeType === 'base') {
+      setIsBaseRecipeFormOpen(true);
+    } else {
+      setIsFullRecipeFormOpen(true);
+    }
   };
 
-  const handleSaveRecipe = async (data: any) => {
+  const handleSaveBaseRecipe = async (data: any) => {
     if (data.id) {
       await updateRecipe(data.id, data);
     } else {
@@ -158,7 +178,21 @@ const InventoryPage: React.FC = () => {
       await addRecipe(payload);
     }
     await loadRecipes();
-    setIsRecipeFormOpen(false);
+    setIsBaseRecipeFormOpen(false);
+    setEditingRecipe(undefined);
+  };
+
+  const handleSaveFullRecipe = async (data: any) => {
+    if (data.id) {
+      await updateRecipe(data.id, data);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...payload } = data;
+      await addRecipe(payload);
+    }
+    await loadRecipes();
+    setIsFullRecipeFormOpen(false);
+    setEditingRecipe(undefined);
   };
 
   const handleDeleteRecipe = (recipe: Recipe) => {
@@ -227,13 +261,46 @@ const InventoryPage: React.FC = () => {
           <RecipeToolbar
             searchTerm={recipeSearch}
             onSearchChange={setRecipeSearch}
-            onCreate={handleCreateRecipe}
+            onCreateBase={handleCreateBaseRecipe}
+            onCreateFull={handleCreateFullRecipe}
           />
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => setRecipeViewMode('all')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                recipeViewMode === 'all'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {t('recipes.all') || 'Tất cả'}
+            </button>
+            <button
+              onClick={() => setRecipeViewMode('base')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                recipeViewMode === 'base'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {t('recipes.form.baseRecipe')}
+            </button>
+            <button
+              onClick={() => setRecipeViewMode('full')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                recipeViewMode === 'full'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              {t('recipes.form.fullRecipe')}
+            </button>
+          </div>
           <RecipeGrid
             recipes={filteredRecipes}
             loading={loadingRecipes}
             onEdit={handleEditRecipe}
-            onCreate={handleCreateRecipe}
+            onCreate={handleCreateBaseRecipe}
             onDelete={handleDeleteRecipe}
           />
         </>
@@ -266,13 +333,29 @@ const InventoryPage: React.FC = () => {
         />
       )}
 
-      {isRecipeFormOpen && (
-        <RecipeForm
-          isOpen={isRecipeFormOpen}
+      {isBaseRecipeFormOpen && (
+        <BaseRecipeForm
+          isOpen={isBaseRecipeFormOpen}
           initialData={editingRecipe}
           ingredients={ingredients}
-          onSave={handleSaveRecipe}
-          onClose={() => setIsRecipeFormOpen(false)}
+          onSave={handleSaveBaseRecipe}
+          onClose={() => {
+            setIsBaseRecipeFormOpen(false);
+            setEditingRecipe(undefined);
+          }}
+        />
+      )}
+
+      {isFullRecipeFormOpen && (
+        <FullRecipeForm
+          isOpen={isFullRecipeFormOpen}
+          initialData={editingRecipe}
+          ingredients={ingredients}
+          onSave={handleSaveFullRecipe}
+          onClose={() => {
+            setIsFullRecipeFormOpen(false);
+            setEditingRecipe(undefined);
+          }}
           baseRecipes={recipes.filter(r => r.recipeType === 'base' || (!r.recipeType && !r.baseRecipeId))}
         />
       )}

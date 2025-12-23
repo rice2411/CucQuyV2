@@ -1,14 +1,15 @@
 import React from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Layers, Cake, Plus, Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RecipeToolbarProps {
   searchTerm: string;
   onSearchChange: (val: string) => void;
-  onCreate: () => void;
+  onCreateBase: () => void;
+  onCreateFull: () => void;
 }
 
-const RecipeToolbar: React.FC<RecipeToolbarProps> = ({ searchTerm, onSearchChange, onCreate }) => {
+const RecipeToolbar: React.FC<RecipeToolbarProps> = ({ searchTerm, onSearchChange, onCreateBase, onCreateFull }) => {
   const { t } = useLanguage();
 
   return (
@@ -24,13 +25,22 @@ const RecipeToolbar: React.FC<RecipeToolbarProps> = ({ searchTerm, onSearchChang
         />
       </div>
 
-      <button
-        onClick={onCreate}
-        className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-orange-200 dark:shadow-none whitespace-nowrap"
-      >
-        <Plus className="w-4 h-4" />
-        <span>{t('recipes.add')}</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onCreateBase}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-blue-200 dark:shadow-none whitespace-nowrap"
+        >
+          <Layers className="w-4 h-4" />
+          <span>{t('recipes.addBase') || 'Thêm công thức nền'}</span>
+        </button>
+        <button
+          onClick={onCreateFull}
+          className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-orange-200 dark:shadow-none whitespace-nowrap"
+        >
+          <Cake className="w-4 h-4" />
+          <span>{t('recipes.addFull') || 'Thêm công thức bánh'}</span>
+        </button>
+      </div>
     </div>
   );
 };
