@@ -58,7 +58,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onClose, onEdit, onUpd
   
   const finalTotal = subtotal + shippingCost;
 
-  const description = `Thanh toan don hang ${currentOrder.orderNumber}`;
+  const description = `${currentOrder.orderNumber}`;
   const qrUrl =generateQRCodeImage(description, finalTotal);
 
   const copyToClipboard = (text: string) => {
