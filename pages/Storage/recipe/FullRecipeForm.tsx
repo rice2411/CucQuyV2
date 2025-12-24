@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AlertCircle, ChefHat, Save, X, Search, AlignLeft, FlaskConical, Sparkles, Layers, Cake, CheckCircle2, Box, Edit, Calculator, CheckCircle, XCircle, Package } from 'lucide-react';
 import { Recipe, RecipeIngredient, Ingredient, IngredientType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { calculateCurrentQuantity, isLowStock, isOutOfStock } from '@/utils/ingredientUtil';
+import { calculateCurrentQuantity, isOutOfStock } from '@/utils/ingredientUtil';
 import { calculateIngredientRequirements, checkAllIngredientsSufficient, calculateRequiredRecipeCount, calculateMaxPossibleProductQuantity } from '@/utils/recipeUtil';
 import { fetchRecipes } from '@/services/recipeService';
 
@@ -539,7 +539,6 @@ const FullRecipeForm: React.FC<FullRecipeFormProps> = ({ isOpen, initialData, in
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[500px] overflow-y-auto">
                   {allFlavorToppingIngredients.map((ing) => {
                     const currentQuantity = calculateCurrentQuantity(ing);
-                    const lowStock = isLowStock(ing);
                     const outOfStock = isOutOfStock(ing);
                     const colors = getTypeColors(ing.type);
                     const TypeIcon = getTypeIcon(ing.type);
@@ -573,7 +572,6 @@ const FullRecipeForm: React.FC<FullRecipeFormProps> = ({ isOpen, initialData, in
                             </p>
                             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded inline-block ${
                               outOfStock ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20' : 
-                              lowStock ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' : 
                               'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700'
                             }`}>
                               {outOfStock ? t('recipes.form.outOfStock') : 

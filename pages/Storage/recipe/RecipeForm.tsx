@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AlertCircle, ChefHat, Save, X, Plus, Trash2, Search, AlignLeft, Package, ArrowRight, Box, FlaskConical, Sparkles, Layers, Minus, CheckCircle2, Edit2 } from 'lucide-react';
 import { Recipe, RecipeIngredient, Ingredient, IngredientType, RecipeType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { calculateCurrentQuantity, isLowStock, isOutOfStock } from '@/utils/ingredientUtil';
+import { calculateCurrentQuantity, isOutOfStock } from '@/utils/ingredientUtil';
 import { fetchRecipes } from '@/services/recipeService';
 
 const getTypeIcon = (type: IngredientType) => {
@@ -59,11 +59,11 @@ const getTypeColors = (type: IngredientType) => {
       };
     case IngredientType.MATERIAL:
       return {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-200 dark:border-green-800',
-        text: 'text-green-700 dark:text-green-300',
-        icon: 'text-green-600 dark:text-green-400',
-        header: 'bg-green-100 dark:bg-green-900/40',
+        bg: 'bg-teal-50 dark:bg-teal-900/20',
+        border: 'border-teal-200 dark:border-teal-800',
+        text: 'text-teal-700 dark:text-teal-300',
+        icon: 'text-teal-600 dark:text-teal-400',
+        header: 'bg-teal-100 dark:bg-teal-900/40',
       };
     default:
       return {
@@ -674,7 +674,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ isOpen, initialData, ingredient
                       <ul className="py-1">
                         {availableIngredients.slice(0, 10).map((ing) => {
                           const currentQuantity = calculateCurrentQuantity(ing);
-                          const lowStock = isLowStock(ing);
                           const outOfStock = isOutOfStock(ing);
                           const TypeIcon = getTypeIcon(ing.type);
                           const typeColors = getTypeColors(ing.type);
@@ -701,7 +700,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ isOpen, initialData, ingredient
                                   <div className="mt-1">
                                     <span className={`text-xs font-semibold ${
                                       outOfStock ? 'text-red-500 dark:text-red-400' : 
-                                      lowStock ? 'text-orange-500 dark:text-orange-400' : 
                                       'text-slate-600 dark:text-slate-400'
                                     }`}>
                                       {outOfStock ? t('recipes.form.outOfStock') : 
@@ -749,7 +747,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ isOpen, initialData, ingredient
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {available.map((ing) => {
                                 const currentQuantity = calculateCurrentQuantity(ing);
-                                const lowStock = isLowStock(ing);
                                 const outOfStock = isOutOfStock(ing);
                                 const IngTypeIcon = getTypeIcon(ing.type);
                                 const ingColors = getTypeColors(ing.type);
@@ -774,7 +771,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ isOpen, initialData, ingredient
                                         </p>
                                         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded mt-1 inline-block ${
                                           outOfStock ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20' : 
-                                          lowStock ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' : 
                                           'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700'
                                         }`}>
                                           {outOfStock ? t('recipes.form.outOfStock') : 

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { Box, FlaskConical, Sparkles, Package, Loader2, Warehouse, ArrowDownCircle, TrendingUp } from 'lucide-react';
+import { Box, FlaskConical, Sparkles, Package, Loader2, Warehouse, ArrowDownCircle, TrendingUp, DollarSign, Scale, Receipt } from 'lucide-react';
 import { Ingredient, IngredientType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { calculateTotalImportQuantity, calculateCurrentQuantity, isLowStock, isOutOfStock } from '@/utils/ingredientUtil';
+import { calculateTotalImportQuantity, calculateCurrentQuantity, isOutOfStock, calculateTotalImportPrice, calculateImportCount } from '@/utils/ingredientUtil';
 
 interface IngredientGridProps {
   ingredients: Ingredient[];
@@ -74,11 +74,11 @@ const getTypeColors = (type: IngredientType) => {
       };
     case IngredientType.MATERIAL:
       return {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-200 dark:border-green-800',
-        text: 'text-green-700 dark:text-green-300',
-        icon: 'text-green-600 dark:text-green-400',
-        badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+        bg: 'bg-teal-50 dark:bg-teal-900/20',
+        border: 'border-teal-200 dark:border-teal-800',
+        text: 'text-teal-700 dark:text-teal-300',
+        icon: 'text-teal-600 dark:text-teal-400',
+        badge: 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300',
       };
     default:
       return {
@@ -157,8 +157,10 @@ const IngredientGrid: React.FC<IngredientGridProps> = ({ ingredients, loading, o
             {/* Ingredient Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {group.items.map((ing) => {
-                const lowStock = isLowStock(ing);
                 const outOfStock = isOutOfStock(ing);
+                const totalImportPrice = calculateTotalImportPrice(ing);
+                const currentQuantity = calculateCurrentQuantity(ing);
+                const importCount = calculateImportCount(ing);
                 const itemColors = getTypeColors(ing.type);
                 const ItemIcon = getTypeIcon(ing.type);
                 
@@ -173,13 +175,6 @@ const IngredientGrid: React.FC<IngredientGridProps> = ({ ingredients, loading, o
                       <div className="absolute top-2 right-2">
                         <span className="px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
                           {t('ingredients.outOfStock')}
-                        </span>
-                      </div>
-                    )}
-                    {lowStock && !outOfStock && (
-                      <div className="absolute top-2 right-2">
-                        <span className="px-2 py-1 text-xs font-bold text-white bg-yellow-500 rounded-full">
-                          {t('ingredients.lowStock')}
                         </span>
                       </div>
                     )}
@@ -202,52 +197,52 @@ const IngredientGrid: React.FC<IngredientGridProps> = ({ ingredients, loading, o
                         </div>
                       </div>
 
-                      {/* Current Quantity - Compact */}
-                      <div className={`mb-2.5 rounded-lg p-2.5 border ${outOfStock ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : lowStock ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <TrendingUp className={`w-3.5 h-3.5 ${outOfStock ? 'text-red-600 dark:text-red-400' : lowStock ? 'text-yellow-600 dark:text-yellow-400' : 'text-orange-600 dark:text-orange-400'}`} />
-                            <span className={`text-[10px] font-semibold uppercase tracking-wide ${outOfStock ? 'text-red-700 dark:text-red-300' : lowStock ? 'text-yellow-700 dark:text-yellow-300' : 'text-orange-700 dark:text-orange-300'}`}>
-                              {t('ingredients.currentQuantity')}
+                      {/* Statistics - 2 Rows */}
+                      <div className="space-y-2">
+                        {/* Row 1: Tổng giá đã nhập (Highlighted) */}
+                        <div className="w-full bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-900/20 rounded-lg p-3 border-2 border-green-300 dark:border-green-700 shadow-sm">
+                          <div className="flex items-center gap-2 mb-1">
+                            <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
+                            <span className="text-[10px] font-bold text-green-700 dark:text-green-300 uppercase tracking-wide">
+                              {t('ingredients.totalImportPrice') || 'Tổng giá đã nhập'}
                             </span>
                           </div>
-                          <div className="flex items-baseline gap-1">
-                            <span className={`text-lg font-bold ${outOfStock ? 'text-red-600 dark:text-red-400' : lowStock ? 'text-yellow-600 dark:text-yellow-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                              {calculateCurrentQuantity(ing)}
-                            </span>
-                            <span className={`text-xs font-medium ${outOfStock ? 'text-red-600/70 dark:text-red-400/70' : lowStock ? 'text-yellow-600/70 dark:text-yellow-400/70' : 'text-orange-600/70 dark:text-orange-400/70'}`}>
-                              {ing.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Statistics Row - Compact */}
-                      <div className="flex items-center gap-1.5">
-                        {/* Initial */}
-                        <div className="flex-1 bg-slate-50 dark:bg-slate-700/50 rounded-md p-1.5 border border-slate-200 dark:border-slate-600">
-                          <div className="flex items-center gap-1 mb-0.5">
-                            <Warehouse className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
-                            <span className="text-[9px] font-semibold text-slate-600 dark:text-slate-400 uppercase">
-                              {t('ingredients.initialQuantity')}
-                            </span>
-                          </div>
-                          <p className="text-xs font-bold text-slate-900 dark:text-white leading-none">
-                            {ing.initialQuantity ?? 0}
+                          <p className="text-base font-bold text-green-700 dark:text-green-300 leading-none">
+                            {totalImportPrice > 0 ? new Intl.NumberFormat('vi-VN', { 
+                              style: 'currency', 
+                              currency: 'VND',
+                              maximumFractionDigits: 0
+                            }).format(totalImportPrice) : '-'}
                           </p>
                         </div>
 
-                        {/* Import */}
-                        <div className="flex-1 bg-green-50 dark:bg-green-900/20 rounded-md p-1.5 border border-green-200 dark:border-green-800">
-                          <div className="flex items-center gap-1 mb-0.5">
-                            <ArrowDownCircle className="w-2.5 h-2.5 text-green-600 dark:text-green-400" />
-                            <span className="text-[9px] font-semibold text-green-700 dark:text-green-300 uppercase">
-                              {t('ingredients.totalImport')}
-                            </span>
+                        {/* Row 2: Tổng khối lượng và Tổng số lần nhập (2 cột) */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Tổng khối lượng (lấy từ số lượng hiện tại) */}
+                          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2.5 border border-slate-200 dark:border-slate-600">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Scale className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                              <span className="text-[9px] font-semibold text-slate-600 dark:text-slate-400 uppercase">
+                                {t('ingredients.totalImportWeight') || 'Tổng khối lượng'}
+                              </span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">
+                              {currentQuantity > 0 ? `${currentQuantity.toLocaleString('vi-VN')}${ing.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}` : '-'}
+                            </p>
                           </div>
-                          <p className="text-xs font-bold text-green-700 dark:text-green-300 leading-none">
-                            {calculateTotalImportQuantity(ing)}
-                          </p>
+
+                          {/* Tổng số lần nhập */}
+                          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2.5 border border-slate-200 dark:border-slate-600">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Receipt className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                              <span className="text-[9px] font-semibold text-slate-600 dark:text-slate-400 uppercase">
+                                {t('ingredients.importCount') || 'Tổng số lần nhập'}
+                              </span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">
+                              {importCount} {t('ingredients.times') || 'lần'}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

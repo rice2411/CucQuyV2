@@ -11,7 +11,9 @@ import {
   TrendingUp,
   Warehouse,
   ArrowDownCircle,
-  ArrowUpCircle
+  ArrowUpCircle,
+  DollarSign,
+  Receipt
 } from 'lucide-react';
 import { Ingredient, IngredientType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,8 +21,9 @@ import {
   calculateTotalImportQuantity, 
   calculateTotalUsageQuantity, 
   calculateCurrentQuantity, 
-  isLowStock, 
-  isOutOfStock 
+  isOutOfStock,
+  calculateTotalImportPrice,
+  calculateImportCount
 } from '@/utils/ingredientUtil';
 
 interface IngredientTableProps {
@@ -72,9 +75,9 @@ const getTypeColors = (type: IngredientType) => {
       };
     case IngredientType.MATERIAL:
       return {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        text: 'text-green-700 dark:text-green-300',
-        badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300',
+        bg: 'bg-teal-50 dark:bg-teal-900/20',
+        text: 'text-teal-700 dark:text-teal-300',
+        badge: 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300',
       };
     default:
       return {
@@ -90,7 +93,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterType, setFilterType] = useState<IngredientType | 'all'>('all');
-  const [filterStock, setFilterStock] = useState<'all' | 'inStock' | 'lowStock' | 'outOfStock'>('all');
+  const [filterStock, setFilterStock] = useState<'all' | 'inStock' | 'outOfStock'>('all');
 
   const sortedAndFiltered = useMemo(() => {
     let result = [...ingredients];
@@ -102,8 +105,7 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
     if (filterStock !== 'all') {
       result = result.filter(ing => {
         if (filterStock === 'outOfStock') return isOutOfStock(ing);
-        if (filterStock === 'lowStock') return isLowStock(ing) && !isOutOfStock(ing);
-        if (filterStock === 'inStock') return !isLowStock(ing) && !isOutOfStock(ing);
+        if (filterStock === 'inStock') return !isOutOfStock(ing);
         return true;
       });
     }
@@ -221,7 +223,6 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
           >
             <option value="all">{t('ingredients.allStock') || 'Tất cả'}</option>
             <option value="inStock">{t('ingredients.inStock') || 'Còn hàng'}</option>
-            <option value="lowStock">{t('ingredients.lowStock') || 'Sắp hết'}</option>
             <option value="outOfStock">{t('ingredients.outOfStock') || 'Hết hàng'}</option>
           </select>
         </div>
@@ -290,6 +291,16 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
                     <SortIcon field="totalUsage" />
                   </button>
                 </th>
+                <th className="px-4 py-3 text-right">
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    {t('ingredients.totalImportPrice') || 'Tổng giá nhập'}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-right">
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    {t('ingredients.importCount') || 'Số lần nhập'}
+                  </span>
+                </th>
                 <th className="px-4 py-3 text-center">
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     {t('ingredients.status') || 'Trạng thái'}
@@ -304,11 +315,12 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {sortedAndFiltered.map((ing) => {
-                const lowStock = isLowStock(ing);
                 const outOfStock = isOutOfStock(ing);
                 const currentQty = calculateCurrentQuantity(ing);
                 const totalImport = calculateTotalImportQuantity(ing);
                 const totalUsage = calculateTotalUsageQuantity(ing);
+                const totalImportPrice = calculateTotalImportPrice(ing);
+                const importCount = calculateImportCount(ing);
                 const colors = getTypeColors(ing.type);
 
                 return (
@@ -328,8 +340,8 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <TrendingUp className={`w-4 h-4 ${outOfStock ? 'text-red-500' : lowStock ? 'text-yellow-500' : 'text-orange-500'}`} />
-                        <span className={`font-bold ${outOfStock ? 'text-red-600 dark:text-red-400' : lowStock ? 'text-yellow-600 dark:text-yellow-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                        <TrendingUp className={`w-4 h-4 ${outOfStock ? 'text-red-500' : 'text-orange-500'}`} />
+                        <span className={`font-bold ${outOfStock ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
                           {currentQty.toLocaleString()}
                         </span>
                         <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -370,16 +382,34 @@ const IngredientTable: React.FC<IngredientTableProps> = ({ ingredients, loading,
                         </span>
                       </div>
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <DollarSign className="w-4 h-4 text-green-500" />
+                        <span className="text-green-700 dark:text-green-300 font-medium">
+                          {totalImportPrice > 0 ? new Intl.NumberFormat('vi-VN', { 
+                            style: 'currency', 
+                            currency: 'VND',
+                            maximumFractionDigits: 0
+                          }).format(totalImportPrice) : '-'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Receipt className="w-4 h-4 text-blue-500" />
+                        <span className="text-blue-700 dark:text-blue-300 font-medium">
+                          {importCount}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {t('ingredients.times') || 'lần'}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-center">
                       {outOfStock ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                           <XCircle className="w-3.5 h-3.5" />
                           {t('ingredients.outOfStock')}
-                        </span>
-                      ) : lowStock ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          {t('ingredients.lowStock')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">

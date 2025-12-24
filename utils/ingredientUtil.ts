@@ -42,21 +42,57 @@ export const calculateCurrentQuantity = (ingredient: Ingredient): number => {
 };
 
 /**
- * Kiểm tra xem số lượng hiện tại của một nguyên liệu có thấp hơn 100 hay không
- * @param ingredient - Nguyên liệu
- * @returns true nếu số lượng hiện tại của nguyên liệu thấp hơn 100, false nếu không
- */
-export const isLowStock = (ingredient: Ingredient): boolean => {
-  const quantity = calculateCurrentQuantity(ingredient);
-  return quantity < 100 && quantity > 0;
-};
-
-/**
  * Kiểm tra xem số lượng hiện tại của một nguyên liệu có bằng 0 hay không
  * @param ingredient - Nguyên liệu
  * @returns true nếu số lượng hiện tại của nguyên liệu bằng 0, false nếu không
  */
 export const isOutOfStock = (ingredient: Ingredient): boolean => {
   return calculateCurrentQuantity(ingredient) <= 0;
+};
+
+/**
+ * Tính tổng giá đã nhập cho một nguyên liệu
+ * @param ingredient - Nguyên liệu
+ * @returns Tổng giá đã nhập (VND)
+ */
+export const calculateTotalImportPrice = (ingredient: Ingredient): number => {
+  if (!ingredient.history || ingredient.history.length === 0) {
+    return 0;
+  }
+  return ingredient.history.reduce((acc, item) => {
+    if (item.type === IngredientHistoryType.IMPORT && item.price && item.importQuantity) {
+      return acc + (item.price * item.importQuantity);
+    }
+    return acc;
+  }, 0);
+};
+
+/**
+ * Tính số lần đã nhập cho một nguyên liệu
+ * @param ingredient - Nguyên liệu
+ * @returns Số lần đã nhập
+ */
+export const calculateImportCount = (ingredient: Ingredient): number => {
+  if (!ingredient.history || ingredient.history.length === 0) {
+    return 0;
+  }
+  return ingredient.history.filter(item => item.type === IngredientHistoryType.IMPORT).length;
+};
+
+/**
+ * Tính tổng khối lượng đã nhập cho một nguyên liệu
+ * @param ingredient - Nguyên liệu
+ * @returns Tổng khối lượng đã nhập (g)
+ */
+export const calculateTotalImportWeight = (ingredient: Ingredient): number => {
+  if (!ingredient.history || ingredient.history.length === 0) {
+    return 0;
+  }
+  return ingredient.history.reduce((acc, item) => {
+    if (item.type === IngredientHistoryType.IMPORT && item.productWeight && item.importQuantity) {
+      return acc + (item.productWeight * item.importQuantity);
+    }
+    return acc;
+  }, 0);
 };
 

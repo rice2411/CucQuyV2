@@ -22,6 +22,10 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
   const [activeTab, setActiveTab] = useState<IngredientTab>('details');
   const [isClosing, setIsClosing] = useState(false);
 
+  const formatUnit = (unitValue: 'g' | 'piece'): string => {
+    return unitValue === 'piece' ? t('ingredients.form.unitPiece') : 'g';
+  };
+
   const [name, setName] = useState('');
   const [type, setType] = useState<IngredientType>(IngredientType.BASE);
   const [unit, setUnit] = useState<'g' | 'piece'>('g');
@@ -113,8 +117,12 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
   }, [historyImportQuantity, historyPrice]);
 
   const totalWeight = useMemo(() => {
-    if (unit === 'piece' && productWeight > 0 && historyImportQuantity > 0) {
-      return productWeight * historyImportQuantity;
+    if (productWeight > 0 && historyImportQuantity > 0) {
+      if (unit === 'piece') {
+        return productWeight * historyImportQuantity;
+      } else {
+        return productWeight * historyImportQuantity;
+      }
     }
     return 0;
   }, [productWeight, historyImportQuantity, unit]);
@@ -250,8 +258,8 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
   };
 
   const handleAddHistory = async () => {
-    if (unit === 'piece' && productWeight <= 0) {
-      setError(t('ingredients.form.errors.productWeightRequired') || 'Khối lượng sản phẩm phải lớn hơn 0');
+    if (productWeight <= 0) {
+      setError(t('ingredients.form.errors.productWeightRequired'));
       return;
     }
     if (historyImportQuantity <= 0) {
@@ -528,46 +536,47 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                   </div>
                   
                   {/* 4 Main Input Fields */}
-                  <div className={`grid gap-4 mb-6 ${unit === 'piece' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
-                    {/* Khối lượng sản phẩm - chỉ hiển thị khi unit = piece */}
-                    {unit === 'piece' ? (
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                          <Scale className="w-4 h-4 text-orange-500" />
-                          {t('ingredients.form.productWeight')} (g/{t('ingredients.form.unitPiece')}) *
-                        </label>
-                        <div className="relative">
-                          <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500 z-10 pointer-events-none" />
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            required={unit === 'piece'}
-                            value={productWeight}
-                            onChange={(e) => {
-                              const value = Number(e.target.value);
-                              setProductWeight(value);
-                            }}
-                            className="w-full pl-12 pr-16 py-3 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg text-base font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all touch-manipulation"
-                            placeholder="VD: 50"
-                          />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-orange-600 dark:text-orange-400">
-                            g/{t('ingredients.form.unitPiece')}
-                          </span>
-                        </div>
-                        {productWeight > 0 && historyImportQuantity > 0 && (
-                          <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                            ✓ Tổng khối lượng: {totalWeight.toLocaleString('vi-VN')}g
-                          </p>
-                        )}
+                  <div className="grid gap-4 mb-6 grid-cols-1 sm:grid-cols-2">
+                    {/* Khối lượng sản phẩm - hiển thị cho cả 2 đơn vị */}
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        <Scale className="w-4 h-4 text-orange-500" />
+                        {t('ingredients.form.productWeight')} (g/{formatUnit(unit)}) *
+                      </label>
+                      <div className="relative">
+                        <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500 z-10 pointer-events-none" />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          required
+                          value={productWeight}
+                          onChange={(e) => {
+                            const value = Number(e.target.value);
+                            setProductWeight(value);
+                          }}
+                          className="w-full pl-12 pr-16 py-3 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg text-base font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all touch-manipulation"
+                          placeholder={unit === 'piece' ? t('ingredients.form.productWeightPlaceholderPiece') : t('ingredients.form.productWeightPlaceholderGram')}
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-orange-600 dark:text-orange-400">
+                          g/{formatUnit(unit)}
+                        </span>
                       </div>
-                    ) : null}
+                      {productWeight > 0 && historyImportQuantity > 0 && (
+                        <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                          {t('ingredients.form.totalWeightLabel')} {totalWeight.toLocaleString('vi-VN')}g
+                        </p>
+                      )}
+                    </div>
 
                     {/* Số lượng nhập */}
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                         <Package className="w-4 h-4 text-blue-500" />
-                        {t('ingredients.form.importQuantity')} ({unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}) *
+                        <span>
+                          {t('ingredients.form.importQuantity')} 
+                        </span>
+                        <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500 z-10 pointer-events-none" />
@@ -582,19 +591,26 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                             setHistoryImportQuantity(value);
                           }}
                           className="w-full pl-12 pr-16 py-3 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg text-base font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all touch-manipulation"
-                          placeholder={unit === 'piece' ? 'VD: 100' : 'VD: 1000'}
+                          placeholder={t('ingredients.form.importQuantityPlaceholder')}
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-blue-600 dark:text-blue-400">
-                          {unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                          {formatUnit(unit)}
                         </span>
                       </div>
+                      {productWeight > 0 && (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          {t('ingredients.form.importQuantityHint')
+                            .replace('{productWeight}', productWeight.toString())
+                            .replace('{unit}', formatUnit(unit))}
+                        </p>
+                      )}
                     </div>
 
                     {/* Đơn giá */}
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                         <DollarSign className="w-4 h-4 text-green-500" />
-                        {t('ingredients.form.unitPrice')} (VND/{unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}) *
+                        {t('ingredients.form.unitPrice')} (VND/{formatUnit(unit)}) *
                       </label>
                       <div className="relative">
                         <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 z-10 pointer-events-none" />
@@ -606,7 +622,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                           value={historyPrice}
                           onChange={(e) => setHistoryPrice(Number(e.target.value))}
                           className="w-full pl-12 pr-16 py-3 bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-700 rounded-lg text-base font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all touch-manipulation"
-                          placeholder="VD: 50000"
+                          placeholder={t('ingredients.form.historyPricePlaceholder')}
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-green-600 dark:text-green-400">
                           VND
@@ -680,16 +696,19 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                   )}
 
                   {/* Summary Display */}
-                  {(historyImportQuantity > 0 || (unit === 'piece' && productWeight > 0)) && historyPrice > 0 && (
+                  {(historyImportQuantity > 0 || productWeight > 0) && historyPrice > 0 && (
                     <div className="mb-6 p-5 bg-gradient-to-r from-orange-50 via-green-50 to-blue-50 dark:from-orange-900/20 dark:via-green-900/20 dark:to-blue-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-xl shadow-sm">
                       <div className="space-y-3">
-                        {unit === 'piece' && productWeight > 0 && (
+                        {productWeight > 0 && (
                           <div className="flex items-center justify-between pb-2 border-b border-orange-200 dark:border-orange-800">
                             <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                               {t('ingredients.form.productWeight')} × {t('ingredients.form.importQuantity')}
                             </span>
                             <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                              {productWeight}g × {historyImportQuantity} {t('ingredients.form.unitPiece')} = {totalWeight.toLocaleString('vi-VN')}g
+                              {productWeight}g/{formatUnit(unit)} × {historyImportQuantity} {formatUnit(unit)} = {totalWeight.toLocaleString('vi-VN')}g
+                              <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                                ({historyImportQuantity} × {productWeight}g)
+                              </span>
                             </p>
                           </div>
                         )}
@@ -699,7 +718,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                               {t('ingredients.form.importQuantity')} × {t('ingredients.form.unitPrice')}
                             </span>
                             <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                              {historyImportQuantity.toLocaleString('vi-VN')} {unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'} × {new Intl.NumberFormat('vi-VN', { 
+                              {historyImportQuantity.toLocaleString('vi-VN')} {formatUnit(unit)} × {new Intl.NumberFormat('vi-VN', { 
                                 style: 'currency', 
                                 currency: 'VND',
                                 maximumFractionDigits: 0
@@ -825,17 +844,17 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                                 </span>
                                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                   <p className={`text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300`}>
-                                    {item.fromQuantity} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                    {item.fromQuantity} {formatUnit(item.unit)}
                                   </p>
                                   <span className={`text-base sm:text-lg font-bold ${isImport ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                     {isImport ? '+' : '-'}
                                   </span>
                                   <p className={`text-sm sm:text-lg font-bold ${textColor}`}>
-                                    {item.importQuantity} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                    {item.importQuantity} {formatUnit(item.unit)}
                                   </p>
                                   <span className="text-slate-400 dark:text-slate-500">=</span>
                                   <p className={`text-sm sm:text-lg font-bold ${isImport ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    {isImport ? item.fromQuantity + item.importQuantity : item.fromQuantity - item.importQuantity} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                    {isImport ? item.fromQuantity + item.importQuantity : item.fromQuantity - item.importQuantity} {formatUnit(item.unit)}
                                   </p>
                                 </div>
                               </div>
@@ -851,7 +870,7 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                                       {new Intl.NumberFormat('vi-VN', { 
                                         style: 'currency', 
                                         currency: 'VND' 
-                                      }).format(item.price)}/{item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                      }).format(item.price)}/{formatUnit(item.unit)}
                                     </p>
                                   </div>
                                 )}
@@ -878,11 +897,11 @@ const IngredientForm: React.FC<IngredientFormProps> = ({ isOpen, initialData, on
                                   </span>
                                   <div className="flex items-center gap-1.5 sm:gap-2">
                                     <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                      {totals.before} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                      {totals.before} {formatUnit(item.unit)}
                                     </span>
                                     <span className="text-slate-400 dark:text-slate-500">→</span>
                                     <span className="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400">
-                                      {totals.after} {item.unit === 'piece' ? t('ingredients.form.unitPiece') : 'g'}
+                                      {totals.after} {formatUnit(item.unit)}
                                     </span>
                                   </div>
                                 </div>
