@@ -21,6 +21,7 @@ interface OrderFormProps {
 }
 
 export interface FormItem {
+  id: string;
   productId: string;
   productName: string;
   image?: string;
@@ -87,6 +88,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, initialData, onSave, onCa
       if (initialData.items && initialData.items.length > 0) {
         const loadedItems = initialData.items.map((item, index) => {
            return {
+             id: `item-${Date.now()}-${index}`,
              productId: item.id,
              productName: item.name,
              quantity: item.quantity,
@@ -95,9 +97,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, initialData, onSave, onCa
            };
         });
         setItems(loadedItems);
-      } else {
+      } else if (products.length > 0) {
         setItems([{
-           productId: products[0]?.id,
+           id: `item-${Date.now()}-0`,
+           productId: products[0]?.id || '',
            productName: products[0]?.name || '',
            quantity: 1,
            unitPrice: products[0]?.price || 0,
@@ -131,21 +134,28 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, initialData, onSave, onCa
       setStatus(OrderStatus.PENDING);
       setPaymentStatus(PaymentStatus.UNPAID);
       setPaymentMethod(PaymentMethod.CASH);
-      
+    }
+  }, [initialData]);
+
+  // Initialize items when products are loaded (for new orders only)
+  useEffect(() => {
+    if (!initialData && products.length > 0 && items.length === 0) {
       setItems([{
-         productId: products[0]?.id,
+         id: `item-${Date.now()}-0`,
+         productId: products[0]?.id || '',
          productName: products[0]?.name || '',
          quantity: 1,
          unitPrice: products[0]?.price || 0,
          image: products[0]?.image
       }]);
     }
-  }, [initialData, products]);
+  }, [products, initialData]);
 
   const handleAddItem = () => {
     const first = products[0];
     setItems([...items, {
-      productId: first?.id,
+      id: `item-${Date.now()}-${items.length}`,
+      productId: first?.id || '',
       productName: first?.name || '',
       quantity: 1,
       unitPrice: first?.price || 0,
@@ -153,13 +163,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, initialData, onSave, onCa
     }]);
   };
 
-  const handleRemoveItem = (productId: string) => {
-    setItems(items.filter(i => i.productId !== productId));
+  const handleRemoveItem = (itemId: string) => {
+    setItems(items.filter(i => i.id !== itemId));
   };
 
-  const handleUpdateItem = (productId: string, field: keyof FormItem, value: any) => {
+  const handleUpdateItem = (itemId: string, field: keyof FormItem, value: any) => {
     setItems(items.map(item => {
-      if (item.productId === productId) {
+      if (item.id === itemId) {
         // If selecting a product
         if (field === 'productId') {
           const selected = products.find(p => p.id === value);
@@ -175,7 +185,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, initialData, onSave, onCa
           // Custom item
           return {
             ...item,
-            productId: undefined,
+            productId: '',
             productName: '',
             unitPrice: 0,
             image: undefined

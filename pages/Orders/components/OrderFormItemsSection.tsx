@@ -7,8 +7,8 @@ import { FormItem } from './modals/OrderForm';
 interface OrderItemsSectionProps {
   items: FormItem[];
   onAddItem: () => void;
-  onRemoveItem: (id: string) => void;
-  onUpdateItem: (id: string, field: keyof FormItem, value: any) => void;
+  onRemoveItem: (itemId: string) => void;
+  onUpdateItem: (itemId: string, field: keyof FormItem, value: any) => void;
   shippingCost: number;
   setShippingCost: (val: number) => void;
   total: number;
@@ -47,11 +47,11 @@ const OrderFormItemsSection: React.FC<OrderItemsSectionProps> = ({
         {items.map((item, index) => {
              const currentImage = getProductImage(item);
              return (
-                 <div key={item.productId} className="relative p-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-slate-100 dark:border-slate-700">
+                 <div key={item.id} className="relative p-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-slate-100 dark:border-slate-700">
                     {items.length > 1 && (
                         <button 
                            type="button"
-                           onClick={() => onRemoveItem(item.productId)}
+                           onClick={() => onRemoveItem(item.id)}
                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                            title="Remove item"
                         >
@@ -78,7 +78,7 @@ const OrderFormItemsSection: React.FC<OrderItemsSectionProps> = ({
                                     <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('form.productType')} {items.length > 1 && `#${index + 1}`}</label>
                                     <select 
                                         value={item.productId || ''}
-                                        onChange={(e) => onUpdateItem(item.productId, 'productId', e.target.value || undefined)}
+                                        onChange={(e) => onUpdateItem(item.id, 'productId', e.target.value || '')}
                                         className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
                                     >
                                         {products.map(p => (
@@ -98,7 +98,7 @@ const OrderFormItemsSection: React.FC<OrderItemsSectionProps> = ({
                                         type="number" 
                                         min="1"
                                         value={item.quantity}
-                                        onChange={(e) => onUpdateItem(item.productId, 'quantity', Math.max(1, Number(e.target.value)))}
+                                        onChange={(e) => onUpdateItem(item.id, 'quantity', Math.max(1, Number(e.target.value)))}
                                         className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
                                     />
                                 </div>
@@ -111,7 +111,7 @@ const OrderFormItemsSection: React.FC<OrderItemsSectionProps> = ({
                                             min="0"
                                             step="1000"
                                             value={item.unitPrice}
-                                            onChange={(e) => onUpdateItem(item.productId, 'unitPrice', Math.max(0, Number(e.target.value)))}
+                                            onChange={(e) => onUpdateItem(item.id, 'unitPrice', Math.max(0, Number(e.target.value)))}
                                             className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
                                         />
                                     </div>
